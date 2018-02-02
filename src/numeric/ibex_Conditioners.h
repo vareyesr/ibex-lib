@@ -15,7 +15,7 @@
 #include "ibex_Matrix.h"
 #include "ibex_Linear.h"
 #include "ibex_IntervalVector.h"
-#include "ibex_Interval.h.in"
+#include "ibex_Interval.h"
 
 using namespace std;
 
@@ -38,21 +38,21 @@ namespace ibex {
     * This selection is perform by using the rule..
     */
 
-	pair<int,int> find_next_pivot(IntervalMatrix A, IntervalVector x,set<int> ban_rows, set<int> ban_cols);
+	pair<int,int> find_next_pivot(IntervalMatrix & A, IntervalVector x,set<int> & ban_rows, set<int> & ban_cols);
 
     /*
      * \brief This function performs (n/m) Gauss-Jordan eliminations to the matrix A. All the row operations are stored
      * on the list perm_list. The pivot variables and the corresponding equation are stored in proj_vars in order to be
      * contracted by the projection operator.
      */
-	void best_gauss_jordan (IntervalMatrix& A, IntervalVector x, vector<Matrix> & perm_list, vector <vector <pair <int,int> > > proj_vars, double prec);
+	void best_gauss_jordan (IntervalMatrix A, IntervalVector x, vector<Matrix> & perm_list, vector <vector <pair <int,int> > > proj_vars, double prec);
 
 	 /*
 	  * \brief This function performs all the possible Gauss-Jordan eliminations to the matrix A. All the row operations are stored
 	  * on the list perm_list. The pivot variables and the corresponding equation are stored in proj_vars in order to be
 	  * contracted by the projection operator.
 	 */
-	void all_gauss_jordan (IntervalMatrix& A, IntervalVector x, vector<Matrix> & perm_list,vector <vector <pair <int,int> > > proj_vars , double prec);
+	void all_gauss_jordan (IntervalMatrix A, IntervalVector x, vector<Matrix> & perm_list,vector <vector <pair <int,int> > > proj_vars , double prec);
 }
 
 
