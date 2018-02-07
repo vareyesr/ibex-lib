@@ -22,6 +22,14 @@ using namespace std;
 namespace ibex {
 
 
+	/*TODO: add comments combinatorial function/*
+
+	/*
+    * \brief .
+    */
+
+	void combinatorial(IntervalMatrix A, int cols,int rows,std::vector< std::vector <int> > & comb_piv);
+
 	/*TODO: add comments compare function/*
 
 	/*
