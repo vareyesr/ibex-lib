@@ -83,9 +83,9 @@ namespace ibex {
 	}
 
 	void best_gauss_jordan (IntervalMatrix A, IntervalVector x, vector<Matrix> & perm_list,
-				vector <vector <pair <int,int> > > proj_vars, double prec=1e-8){
+				vector <vector <pair <int,int> > > & proj_vars, double prec=1e-8){
 
-
+		vector <pair<int,int> > aux_list;
 		Matrix B(1,1);
 		B.resize(A.nb_rows(),A.nb_cols());
 		Matrix perm(1,1);
@@ -95,6 +95,7 @@ namespace ibex {
 		pair<int,int> max_values;
 		bool available_cols = true;
 		while (available_cols){
+			aux_list.clear();
 			ban_rows.clear();
 			/*Initialize B*/
 			B = A.mid();
@@ -112,6 +113,7 @@ namespace ibex {
 				}
 				pair<int,int> var_eq = find_next_pivot(PA, x, ban_rows, ban_cols);
 				if (var_eq.first !=-1){
+					aux_list.push_back(make_pair(var_eq.first,var_eq.second));
 					double coef = B[var_eq.second][var_eq.first];
 					Matrix aux_perm(1,1);
 					aux_perm.resize(A.nb_rows(),A.nb_rows());
@@ -134,6 +136,7 @@ namespace ibex {
 					aux_perm[var_eq.second][var_eq.second] = 1/coef;
 					PA = aux_perm*PA;
 					perm = aux_perm*perm;
+					proj_vars.push_back(aux_list);
 				}
 			}
 			perm_list.push_back(perm);

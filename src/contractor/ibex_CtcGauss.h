@@ -15,17 +15,25 @@ using namespace std;
 #include "ibex_IntervalMatrix.h"
 #include "ibex_System.h"
 #include "ibex_Ctc.h"
+#include "ibex_Conditioners.h"
 
 namespace ibex {
 
 	class GaussContractor : public Ctc {
 	public:
 
-		GaussContractor (const System& sys);
+		GaussContractor (const System& sys, IntervalVector & initial_box);
 
-		void contract(IntervalVector& box);
+		/*
+	    * \brief This function
+	    */
+		void contract(IntervalVector & box);
 
-		void linearization(IntervalVector box, const System sys);
+
+		/*
+	    * \brief This function
+	    */
+		void init_system(IntervalVector box, const System& sys);
 
 
 
