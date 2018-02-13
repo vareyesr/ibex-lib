@@ -56,6 +56,7 @@ namespace ibex {
 			if (ban_cols.count(j) != 1){
 				order_cols.push_back(make_pair(-1,make_pair(j,-1)));
 				for (int i = 0 ; i < PA.nb_rows() ; i++){
+//					if ((ban_rows.count(i) != 1) && (PA[i][j].mid() != 0) )
 					if (ban_rows.count(i) != 1)
 						impact_values[i][j] = PA[i][j].mag()*x[j].diam();
 				}
@@ -64,6 +65,7 @@ namespace ibex {
 
 		for (int j  = 0; j < order_cols.size() ; j++){
 				for (int i = 0 ; i < PA.nb_rows() ; i++){
+//					if ((ban_rows.count(i) != 1) && (PA[i][j].mid() != 0)){
 					if (ban_rows.count(i) != 1){
 						int col = order_cols[j].second.first;
 						if (impact_values[i][col] > order_cols[j].first){
@@ -136,9 +138,10 @@ namespace ibex {
 					aux_perm[var_eq.second][var_eq.second] = 1/coef;
 					PA = aux_perm*PA;
 					perm = aux_perm*perm;
-					proj_vars.push_back(aux_list);
+
 				}
 			}
+			proj_vars.push_back(aux_list);
 			perm_list.push_back(perm);
 			if(A.nb_cols()==ban_cols.size()) available_cols = false;
 		}

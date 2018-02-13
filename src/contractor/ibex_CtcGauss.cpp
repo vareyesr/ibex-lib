@@ -26,28 +26,40 @@ namespace ibex {
 		IntervalVector box_aux = xn;
 		/*Perform gauss Jordan on the matrix A in order to create the permutation list*/
 		best_gauss_jordan (A, box, perm_list, proj_vars,1e-8);
-		while(box_aux != xn){
-			for (int i = 0 ; i < proj_vars.size() ; i++){
+		cout << proj_vars.size() << endl;
+		bool do_contraction = true;
+		while(do_contraction){
+			box_aux = xn;
+			for (int i = 0 ; i < perm_list.size() ; i++){
+				IntervalMatrix An = perm_list[i]*A;
+				IntervalVector bn = perm_list[i]*b;
 				for (int j = 0 ; j < proj_vars[i].size() ; j++){
 					int var = proj_vars[i][j].first;
 					int eq = proj_vars[i][j].second;
-					Interval value(b[eq]);
-					for (int k = 0; k < A.nb_cols(); k++){
+					cout << var << "        " << eq << endl;
+					Interval value(bn[eq]); /*hasta aca bien*/
+					for (int k = 0; k < An.nb_cols(); k++){
 						if (k != var){
-							value = value +(-A[eq][k]*xn[k]);
+							value = value +(-An[eq][k]*xn[k]);
 						}
 					}
-					value = value/A[eq][var];
+					cout << "value :" << value << endl;
+					value = value/An[eq][var];
 					xn[var] = value&=xn[var];
 					}
 				}
 			if (xn.is_empty()){
-				box.set_empty(); /*???*/
+				box.set_empty();
 				return;
+			}
+			if (box_aux == xn){
+				do_contraction = false;
 			}
 		}
 		for (int i = 0 ; i < box.size() ; i++)
 			box[i] = box[i].mid()+xn[i];
+		if (box.is_empty())
+			box.set_empty();
 	}
 
 	void GaussContractor::init_system(IntervalVector initial_box, const System& sys){
