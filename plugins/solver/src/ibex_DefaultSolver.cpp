@@ -23,6 +23,7 @@
 #include "ibex_Array.h"
 #include "ibex_Random.h"
 #include "ibex_NormalizedSystem.h"
+#include "ibex_CtcGauss.h"
 
 using namespace std;
 
@@ -86,8 +87,13 @@ Ctc* DefaultSolver::ctc (System& sys, double prec) {
 	//System& norm_sys=rec(new NormalizedSystem(sys));
 
 	ctc_list.set_ref(index,rec(new CtcFixPoint(rec(new CtcCompo(
-			rec(new CtcPolytopeHull(rec(new LinearizerXTaylor(sys, LinearizerXTaylor::RELAX, LinearizerXTaylor::RANDOM_OPP, LinearizerXTaylor::HANSEN)))),
+			(rec(new GaussContractor(sys,sys.box))),
 			rec(new CtcHC4 (sys.ctrs,0.01)))))));
+
+//	ctc_list.set_ref(index,rec(new CtcFixPoint(rec(new CtcCompo(
+//			rec(new CtcPolytopeHull(rec(new LinearizerXTaylor(sys, LinearizerXTaylor::RELAX, LinearizerXTaylor::RANDOM_OPP, LinearizerXTaylor::HANSEN)))),
+//			rec(new CtcHC4 (sys.ctrs,0.01)))))));
+
 
 	ctc_list.resize(index+1); // in case the system is not square.
 
