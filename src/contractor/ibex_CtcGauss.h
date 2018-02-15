@@ -38,7 +38,7 @@ namespace ibex {
 
 
 		const System& sys;
-		vector<Matrix> perm_list;
+		vector<IntervalMatrix> perm_list;
 		vector<IntervalMatrix> An;
 		vector<IntervalVector> bn;
 		IntervalMatrix A;

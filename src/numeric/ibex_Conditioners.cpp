@@ -53,20 +53,23 @@ namespace ibex {
 		vector<pair <double, pair<int,int> > > order_cols; /*impact value,variable,equation*/
 		Matrix impact_values(PA.nb_rows(),PA.nb_cols());
 		for (int j = 0 ; j < PA.nb_cols() ; j++){
+			bool exist_value = false;
 			if (ban_cols.count(j) != 1){
-				order_cols.push_back(make_pair(-1,make_pair(j,-1)));
+				/*aca*/
 				for (int i = 0 ; i < PA.nb_rows() ; i++){
-//					if ((ban_rows.count(i) != 1) && (PA[i][j].mid() != 0) )
-					if (ban_rows.count(i) != 1)
+					if ((ban_rows.count(i) != 1) &&  !(PA[i][j].contains(0))){
 						impact_values[i][j] = PA[i][j].mag()*x[j].diam();
+						exist_value = true;
+					}
 				}
+				if (exist_value)
+								order_cols.push_back(make_pair(-1,make_pair(j,-1)));
 			}
 		}
-
+		if (order_cols.empty()) return make_pair(-1,1);
 		for (int j  = 0; j < order_cols.size() ; j++){
 				for (int i = 0 ; i < PA.nb_rows() ; i++){
-//					if ((ban_rows.count(i) != 1) && (PA[i][j].mid() != 0)){
-					if (ban_rows.count(i) != 1){
+					if ((ban_rows.count(i) != 1) ){
 						int col = order_cols[j].second.first;
 						if (impact_values[i][col] > order_cols[j].first){
 							order_cols[j].first = impact_values[i][col];
@@ -75,6 +78,7 @@ namespace ibex {
 					}
 				}
 		}
+
 		std::sort(order_cols.begin(), order_cols.end(), compare);
 		if (std::abs(order_cols[0].first) < 1e-8) return make_pair(-1,-1);
 		else{
@@ -84,25 +88,133 @@ namespace ibex {
 		}
 	}
 
-	/*for A real, x,b: intervals*/
+
+	/*
+	 * need fix
+	 */
+//	pair<int,int> find_next_pivot(Matrix & PA, IntervalVector x,set<int> & ban_rows, set<int> & ban_cols){
+//
+//			vector<pair <double, pair<int,int> > > order_cols; /*impact value,variable,equation*/
+//			Matrix impact_values(PA.nb_rows(),PA.nb_cols());
+//			for (int j = 0 ; j < PA.nb_cols() ; j++){
+//				if (ban_cols.count(j) != 1){
+//					order_cols.push_back(make_pair(-1,make_pair(j,-1)));
+//					for (int i = 0 ; i < PA.nb_rows() ; i++){
+//	//					if ((ban_rows.count(i) != 1) && (PA[i][j].mid() != 0) )
+//						if (ban_rows.count(i) != 1)
+//							impact_values[i][j] = PA[i][j].mag()*x[j].diam();
+//					}
+//				}
+//			}
+//
+//			for (int j  = 0; j < order_cols.size() ; j++){
+//					for (int i = 0 ; i < PA.nb_rows() ; i++){
+//	//					if ((ban_rows.count(i) != 1) && (PA[i][j].mid() != 0)){
+//						if (ban_rows.count(i) != 1){
+//							int col = order_cols[j].second.first;
+//							if (impact_values[i][col] > order_cols[j].first){
+//								order_cols[j].first = impact_values[i][col];
+//								order_cols[j].second.second = i;
+//							}
+//						}
+//					}
+//			}
+//			std::sort(order_cols.begin(), order_cols.end(), compare);
+//			if (std::abs(order_cols[0].first) < 1e-8) return make_pair(-1,-1);
+//			else{
+//				ban_rows.insert(order_cols[0].second.second);
+//				ban_cols.insert(order_cols[0].second.first);
+//				return order_cols[0].second;
+//			}
+//		}
+
+
+	/*for A real, x,b: intervals (need fix)*/
 	void best_gauss_jordan (Matrix A, IntervalVector x, vector<Matrix> & perm_list,
 				vector <vector <pair <int,int> > > & proj_vars, double prec=1e-8){
 
+//		vector <pair<int,int> > aux_list;
+//		Matrix B(1,1);
+//		B.resize(A.nb_rows(),A.nb_cols());
+//		Matrix perm(1,1);
+//		set<int> ban_rows;
+//		set<int> ban_cols;
+//		perm.resize(B.nb_rows(),B.nb_rows());
+//		pair<int,int> max_values;
+//		bool available_cols = true;
+//		while (available_cols){
+//			aux_list.clear();
+//			ban_rows.clear();
+//			/*Initialize B*/
+//			B = A;
+//			IntervalMatrix PA = A;
+//			/*Initialize the permutation matrix*/
+//			for (int i = 0; i<A.nb_rows() ; i++)
+//				for (int j = 0; j<A.nb_rows() ; j++){
+//					if (i == j) perm[i][j] = 1;
+//					else perm[i][j] = 0;
+//				}
+//			while (ban_rows.size() != A.nb_rows()){
+//				if (ban_cols.size() == A.nb_cols()){
+//					ban_cols.clear();
+//					available_cols = false;
+//				}
+//				pair<int,int> var_eq = find_next_pivot(PA, x, ban_rows, ban_cols);
+//
+//				if (var_eq.first !=-1){
+//					aux_list.push_back(make_pair(var_eq.first,var_eq.second));
+//					double coef = B[var_eq.second][var_eq.first];
+//					Matrix aux_perm(1,1);
+//					aux_perm.resize(A.nb_rows(),A.nb_rows());
+//					for (int k = 0; k<A.nb_rows() ; k++)
+//						for (int l = 0; l<A.nb_rows() ; l++){
+//							if (k == l) aux_perm[k][l] = 1;
+//							else aux_perm[k][l] = 0;
+//						}
+//					for (int k = 0 ; k < B.nb_rows() ; k++){
+//						if ((k != var_eq.second) &&( (B[k][var_eq.first] < -prec) || (B[k][var_eq.first] > prec))) {
+//							double factor = B[k][var_eq.first];
+//							aux_perm[k][var_eq.second] = -factor/coef;
+//							for (int l = 0 ; l < B.nb_cols() ; l++)
+//								B[k][l]	= B[k][l]-(B[var_eq.second][l]*factor/coef);
+//						}
+//					}
+//					/*make the pivot position 1*/
+//					for (int i = 0 ; i < B.nb_cols() ; i++)
+//						B[var_eq.second][i] = B[var_eq.second][i]/coef;
+//					aux_perm[var_eq.second][var_eq.second] = 1/coef;
+//					PA = aux_perm*PA;
+//					perm = aux_perm*perm;
+//
+//				}
+//			}
+//			proj_vars.push_back(aux_list);
+//			perm_list.push_back(perm);
+//			if(A.nb_cols()==ban_cols.size()) available_cols = false;
+//		}
+	}
+
+	/*for A,b,x intervals*/
+	void best_gauss_jordan (IntervalMatrix A, IntervalVector x, vector<IntervalMatrix> & perm_list,
+					vector <vector <pair <int,int> > > & proj_vars, double prec=1e-8){
+
+		bool is_interval =true;
 		vector <pair<int,int> > aux_list;
-		Matrix B(1,1);
+		IntervalMatrix B(1,1);
 		B.resize(A.nb_rows(),A.nb_cols());
-		Matrix perm(1,1);
+		IntervalMatrix perm(1,1);
 		set<int> ban_rows;
 		set<int> ban_cols;
 		perm.resize(B.nb_rows(),B.nb_rows());
 		pair<int,int> max_values;
 		bool available_cols = true;
+		B = A;
 		while (available_cols){
+
 			aux_list.clear();
 			ban_rows.clear();
 			/*Initialize B*/
 			B = A;
-			IntervalMatrix PA = A;
 			/*Initialize the permutation matrix*/
 			for (int i = 0; i<A.nb_rows() ; i++)
 				for (int j = 0; j<A.nb_rows() ; j++){
@@ -114,12 +226,12 @@ namespace ibex {
 					ban_cols.clear();
 					available_cols = false;
 				}
-				pair<int,int> var_eq = find_next_pivot(PA, x, ban_rows, ban_cols);
-
+				pair<int,int> var_eq = find_next_pivot(B, x, ban_rows, ban_cols);
 				if (var_eq.first !=-1){
+					/*dddd*/
 					aux_list.push_back(make_pair(var_eq.first,var_eq.second));
-					double coef = B[var_eq.second][var_eq.first];
-					Matrix aux_perm(1,1);
+					Interval coef = B[var_eq.second][var_eq.first];
+					IntervalMatrix aux_perm(1,1);
 					aux_perm.resize(A.nb_rows(),A.nb_rows());
 					for (int k = 0; k<A.nb_rows() ; k++)
 						for (int l = 0; l<A.nb_rows() ; l++){
@@ -127,92 +239,37 @@ namespace ibex {
 							else aux_perm[k][l] = 0;
 						}
 					for (int k = 0 ; k < B.nb_rows() ; k++){
-						if ((k != var_eq.second) &&( (B[k][var_eq.first] < -prec) || (B[k][var_eq.first] > prec))) {
-							double factor = B[k][var_eq.first];
+						if ((k != var_eq.second) && (  (B[k][var_eq.first].mag() > prec))) {
+							Interval factor = B[k][var_eq.first];
 							aux_perm[k][var_eq.second] = -factor/coef;
-							for (int l = 0 ; l < B.nb_cols() ; l++)
-								B[k][l]	= B[k][l]-(B[var_eq.second][l]*factor/coef);
+							for (int l = 0 ; l < B.nb_cols() ; l++){
+								if (l == var_eq.first) B[k][l] = 0;
+								else B[k][l] = B[k][l]-(B[var_eq.second][l]*factor/coef);
+
+							}
 						}
 					}
 					/*make the pivot position 1*/
-					for (int i = 0 ; i < B.nb_cols() ; i++)
-						B[var_eq.second][i] = B[var_eq.second][i]/coef;
+					for (int i = 0 ; i < B.nb_cols() ; i++){
+						if (i == var_eq.first) B[var_eq.second][i] = 1;
+						else B[var_eq.second][i] = B[var_eq.second][i]/coef;
+					}
 					aux_perm[var_eq.second][var_eq.second] = 1/coef;
-					PA = aux_perm*PA;
 					perm = aux_perm*perm;
 
 				}
+				else{
+					available_cols = false;
+					break;
+				}
 			}
-			proj_vars.push_back(aux_list);
-			perm_list.push_back(perm);
+			if (!(aux_list.empty())){
+				proj_vars.push_back(aux_list);
+				perm_list.push_back(perm);
+			}
 			if(A.nb_cols()==ban_cols.size()) available_cols = false;
 		}
 	}
-
-	/*for A,b,x intervals*/
-	void best_gauss_jordan (IntervalMatrix A, IntervalVector x, vector<Matrix> & perm_list,
-					vector <vector <pair <int,int> > > & proj_vars, double prec=1e-8){
-
-			vector <pair<int,int> > aux_list;
-			Matrix B(1,1);
-			B.resize(A.nb_rows(),A.nb_cols());
-			Matrix perm(1,1);
-			set<int> ban_rows;
-			set<int> ban_cols;
-			perm.resize(B.nb_rows(),B.nb_rows());
-			pair<int,int> max_values;
-			bool available_cols = true;
-			while (available_cols){
-				aux_list.clear();
-				ban_rows.clear();
-				/*Initialize B*/
-				B = A.mid();
-				IntervalMatrix PA = A;
-				/*Initialize the permutation matrix*/
-				for (int i = 0; i<A.nb_rows() ; i++)
-					for (int j = 0; j<A.nb_rows() ; j++){
-						if (i == j) perm[i][j] = 1;
-						else perm[i][j] = 0;
-					}
-				while (ban_rows.size() != A.nb_rows()){
-					if (ban_cols.size() == A.nb_cols()){
-						ban_cols.clear();
-						available_cols = false;
-					}
-					pair<int,int> var_eq = find_next_pivot(PA, x, ban_rows, ban_cols);
-
-					if (var_eq.first !=-1){
-						aux_list.push_back(make_pair(var_eq.first,var_eq.second));
-						double coef = B[var_eq.second][var_eq.first];
-						Matrix aux_perm(1,1);
-						aux_perm.resize(A.nb_rows(),A.nb_rows());
-						for (int k = 0; k<A.nb_rows() ; k++)
-							for (int l = 0; l<A.nb_rows() ; l++){
-								if (k == l) aux_perm[k][l] = 1;
-								else aux_perm[k][l] = 0;
-							}
-						for (int k = 0 ; k < B.nb_rows() ; k++){
-							if ((k != var_eq.second) &&( (B[k][var_eq.first] < -prec) || (B[k][var_eq.first] > prec))) {
-								double factor = B[k][var_eq.first];
-								aux_perm[k][var_eq.second] = -factor/coef;
-								for (int l = 0 ; l < B.nb_cols() ; l++)
-									B[k][l]	= B[k][l]-(B[var_eq.second][l]*factor/coef);
-							}
-						}
-						/*make the pivot position 1*/
-						for (int i = 0 ; i < B.nb_cols() ; i++)
-							B[var_eq.second][i] = B[var_eq.second][i]/coef;
-						aux_perm[var_eq.second][var_eq.second] = 1/coef;
-						PA = aux_perm*PA;
-						perm = aux_perm*perm;
-
-					}
-				}
-				proj_vars.push_back(aux_list);
-				perm_list.push_back(perm);
-				if(A.nb_cols()==ban_cols.size()) available_cols = false;
-			}
-		}
 
 	void gauss_jordan_all (IntervalMatrix& A, vector<Matrix>& permutations,vector < vector < pair <int, int> > > & pair_contr_all , double prec){
 			int temp_piv;

@@ -27,14 +27,12 @@ namespace ibex {
 		IntervalVector box_aux = xn;
 		/*Perform gauss Jordan on the matrix A in order to create the permutation list*/
 		best_gauss_jordan (A, box, perm_list, proj_vars,1e-8);
-		cout << "gauss jordan success" << endl;
 		bool do_contraction = true;
 		while(do_contraction){
 			box_aux = xn;
 			for (int i = 0 ; i < perm_list.size() ; i++){
 				IntervalMatrix An = perm_list[i]*A;
 				IntervalVector bn = perm_list[i]*b;
-				cout << "Matrices: " << endl << An << endl << endl << bn << endl << endl;
 				for (int j = 0 ; j < proj_vars[i].size() ; j++){
 					int var = proj_vars[i][j].first;
 					int eq = proj_vars[i][j].second;
@@ -66,8 +64,6 @@ namespace ibex {
 	void GaussContractor::init_system(IntervalVector initial_box, const System& sys){
 		A = sys.ctrs_jacobian(initial_box);
 		b = -sys.ctrs_eval(initial_box.mid());
-		cout << A << endl << endl << b << endl << endl ;
-
 	}
 
 
