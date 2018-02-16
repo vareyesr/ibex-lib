@@ -54,7 +54,6 @@ namespace ibex {
 					}
 					xn[var] = xn[var]&=value;
 				}
-
 			}
 			if (xn.is_empty()){
 				box.set_empty();
@@ -64,14 +63,15 @@ namespace ibex {
 				do_contraction = false;
 			}
 			else {
-				box_size_change = true;
-				perm_list.clear();
-				proj_vars.clear();
+				perm_list.clear(); proj_vars.clear();
 				best_gauss_jordan (A, xn, perm_list, proj_vars,1e-8);
+				box_size_change = true;
 			}
 		}
+
 		if (box_size_change){
 			box = box.mid()+xn;
+			return;
 		}
 	}
 
