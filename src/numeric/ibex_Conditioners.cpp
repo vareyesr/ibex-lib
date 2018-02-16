@@ -12,7 +12,7 @@ using namespace std;
 namespace ibex {
 
 	bool compare(const std::pair<double, std::pair<int,int> >&i, const std::pair<double, std::pair<int,int> >&j){
-		return i.first > j.first;
+		return i.first < j.first;
 	}
 
 	void combinatorial(IntervalMatrix A, int cols,int rows,std::vector< std::vector <int> > & comb_piv){
