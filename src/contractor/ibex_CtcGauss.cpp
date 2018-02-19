@@ -13,13 +13,13 @@ namespace ibex {
 
 	GaussContractor::GaussContractor (const System& sys, IntervalVector & initial_box) : sys(sys), Ctc(sys.ctrs.size()), A(1,1), b(1){
 		/*need try-catch?*/
+		i=1;
 		init_system(initial_box,sys);
 	}
 
 	void GaussContractor::contract(IntervalVector & box){
 		init_system(box,sys);
 		vector <vector <pair <int,int> > > proj_vars;
-
 		/*cleaning of permutation, PA,Pb lists*/
 		perm_list.clear();
 		bool box_size_change = false;
@@ -31,7 +31,6 @@ namespace ibex {
 		IntervalVector box_aux_aux =box;
 		while(do_contraction){
 			box_aux = xn;
-//			cout << perm_list.size() << endl;
 			for (int i = 0 ; i < perm_list.size() ; i++){
 				IntervalMatrix An = perm_list[i]*A;
 				IntervalVector bn = perm_list[i]*b;
@@ -71,12 +70,12 @@ namespace ibex {
 
 		if (box_size_change){
 			box = box.mid()+xn;
-			return;
 		}
 	}
 
 	void GaussContractor::init_system(IntervalVector initial_box, const System& sys){
-		A = sys.ctrs_jacobian(initial_box);
+		A.resize(sys.ctrs.size(),sys.box.size());
+		sys.f_ctrs.hansen_matrix(initial_box,A);
 		b = -sys.ctrs_eval(initial_box.mid());
 	}
 
