@@ -12,8 +12,7 @@ using namespace std;
 namespace ibex {
 
 	GaussContractor::GaussContractor (const System& sys, IntervalVector & initial_box) : sys(sys), Ctc(sys.ctrs.size()), A(1,1), b(1){
-		/*need try-catch?*/
-		i=1;
+		/*only for contrained problems*/
 		init_system(initial_box,sys);
 	}
 
@@ -27,6 +26,7 @@ namespace ibex {
 		IntervalVector box_aux = xn;
 		/*Perform gauss Jordan on the matrix A in order to create the permutation list*/
 		best_gauss_jordan (A, xn, perm_list, proj_vars,1e-8);
+		cout << perm_list.size() << endl;
 		bool do_contraction = true;
 		IntervalVector box_aux_aux =box;
 		while(do_contraction){
@@ -34,6 +34,7 @@ namespace ibex {
 			for (int i = 0 ; i < perm_list.size() ; i++){
 				IntervalMatrix An = perm_list[i]*A;
 				IntervalVector bn = perm_list[i]*b;
+				/*Cleaning PA*/
 				for (int j = 0 ; j < proj_vars[i].size() ; j++){
 					int var = proj_vars[i][j].first;
 					int eq = proj_vars[i][j].second;
@@ -42,6 +43,7 @@ namespace ibex {
 						else An[k][var] = 1;
 					}
 				}
+				/*Gauss-Seidel*/
 				for (int j = 0 ; j < proj_vars[i].size() ; j++){
 					int var = proj_vars[i][j].first;
 					int eq = proj_vars[i][j].second;
@@ -54,29 +56,31 @@ namespace ibex {
 					xn[var] = xn[var]&=value;
 				}
 			}
+
 			if (xn.is_empty()){
 				box.set_empty();
 				return;
 			}
-			if (box_aux == xn){
-				do_contraction = false;
-			}
+			if (box_aux == xn) do_contraction = false;
+
 			else {
 				perm_list.clear(); proj_vars.clear();
 				best_gauss_jordan (A, xn, perm_list, proj_vars,1e-8);
 				box_size_change = true;
 			}
 		}
-
-		if (box_size_change){
+		if (box_size_change)
 			box = box.mid()+xn;
-		}
+
+
+
 	}
 
 	void GaussContractor::init_system(IntervalVector initial_box, const System& sys){
 		A.resize(sys.ctrs.size(),sys.box.size());
 		sys.f_ctrs.hansen_matrix(initial_box,A);
 		b = -sys.ctrs_eval(initial_box.mid());
+//		A = sys.ctrs_jacobian(initial_box);
 	}
 
 
