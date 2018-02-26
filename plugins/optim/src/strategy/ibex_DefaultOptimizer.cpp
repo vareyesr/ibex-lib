@@ -25,6 +25,7 @@
 #include "ibex_Random.h"
 #include "ibex_CellBeamSearch.h"
 #include "ibex_CellHeap.h"
+#include "ibex_CtcGauss.h"
 
 using namespace std;
 
@@ -88,13 +89,17 @@ Ctc&  DefaultOptimizer::ctc(const System& ext_sys) {
 	// second contractor on ext_sys : "Acid" with incremental HC4 (propag ratio=0.1)
 	ctc_list.set_ref(1, rec(new CtcAcid (ext_sys,rec(new CtcHC4 (ext_sys.ctrs,0.1,true)),true)));
 	// the last contractor is "XNewton"
+//	if (ext_sys.nb_ctr > 1) {
+//		ctc_list.set_ref(2,rec(new CtcFixPoint
+//				(rec(new CtcCompo(
+//						rec(new CtcPolytopeHull(rec(new LinearizerCombo (ext_sys,LinearizerCombo::XNEWTON)))),
+//								rec(new CtcHC4(ext_sys.ctrs,0.01)))), default_relax_ratio)));
+//	} else {
+//		ctc_list.set_ref(2,rec(new CtcPolytopeHull(rec(new LinearizerCombo (ext_sys,LinearizerCombo::XNEWTON)))));
+//	}
+
 	if (ext_sys.nb_ctr > 1) {
-		ctc_list.set_ref(2,rec(new CtcFixPoint
-				(rec(new CtcCompo(
-						rec(new CtcPolytopeHull(rec(new LinearizerCombo (ext_sys,LinearizerCombo::XNEWTON)))),
-								rec(new CtcHC4(ext_sys.ctrs,0.01)))), default_relax_ratio)));
-	} else {
-		ctc_list.set_ref(2,rec(new CtcPolytopeHull(rec(new LinearizerCombo (ext_sys,LinearizerCombo::XNEWTON)))));
+		ctc_list.set_ref(2,rec(new GaussContractor(ext_sys)));
 	}
 	return rec(new CtcCompo(ctc_list));
 }

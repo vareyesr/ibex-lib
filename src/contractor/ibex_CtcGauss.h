@@ -22,7 +22,7 @@ namespace ibex {
 	class GaussContractor : public Ctc {
 	public:
 
-		GaussContractor (const System& sys, IntervalVector & initial_box);
+		GaussContractor (const System& sys);
 
 		/*
 	    * \brief This function

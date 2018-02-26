@@ -11,9 +11,9 @@ using namespace std;
 
 namespace ibex {
 
-	GaussContractor::GaussContractor (const System& sys, IntervalVector & initial_box) : sys(sys), Ctc(sys.ctrs.size()), A(1,1), b(1){
+	GaussContractor::GaussContractor (const System& sys) : sys(sys), Ctc(sys.ctrs.size()), A(1,1), b(1){
 		/*only for contrained problems*/
-		init_system(initial_box,sys);
+//		init_system(initial_box,sys);
 	}
 
 	void GaussContractor::contract(IntervalVector & box){
@@ -25,8 +25,10 @@ namespace ibex {
 		IntervalVector xn = box-box.mid();
 		IntervalVector box_aux = xn;
 		/*Perform gauss Jordan on the matrix A in order to create the permutation list*/
-		best_gauss_jordan (A, xn, perm_list, proj_vars,1e-8);
-		cout << perm_list.size() << endl;
+//		best_gauss_jordan (A, xn, perm_list, proj_vars,1e-8);
+		cout << "flag1" << endl;
+		all_gauss_jordan (A, perm_list,proj_vars, 1e-8);
+		cout << "flag2" << endl;
 		bool do_contraction = true;
 		IntervalVector box_aux_aux =box;
 		while(do_contraction){
@@ -43,6 +45,8 @@ namespace ibex {
 						else An[k][var] = 1;
 					}
 				}
+				cout << "flag4" << endl;
+				cout << An << endl;
 				/*Gauss-Seidel*/
 				for (int j = 0 ; j < proj_vars[i].size() ; j++){
 					int var = proj_vars[i][j].first;
@@ -55,8 +59,9 @@ namespace ibex {
 					}
 					xn[var] = xn[var]&=value;
 				}
+				cout << "flag5" << endl;
 			}
-
+			cout << "flag3" << endl;
 			if (xn.is_empty()){
 				box.set_empty();
 				return;

@@ -12,10 +12,10 @@ using namespace std;
 namespace ibex {
 
 	bool compare(const std::pair<double, std::pair<int,int> >&i, const std::pair<double, std::pair<int,int> >&j){
-		return i.first > j.first;
+		return i.first < j.first;
 	}
 
-	void combinatorial(IntervalMatrix A, int cols,int rows,std::vector< std::vector <int> > & comb_piv){
+	void combinatorial(int cols,int rows,std::vector< std::vector <int> > & comb_piv){
 		vector<int> pivots;
 		/*Initialize the possible pivot combination*/
 		for (int i = 0; i < rows ; i++)
@@ -45,6 +45,7 @@ namespace ibex {
 					k++;
 				}
 			}
+			if (comb_piv.size() > 50) end =false;
 		}
 	}
 
@@ -270,20 +271,22 @@ namespace ibex {
 		}
 	}
 
-	void gauss_jordan_all (IntervalMatrix& A, vector<IntervalMatrix>& permutations,vector < vector < pair <int, int> > > & pair_contr_all , double prec){
+	void all_gauss_jordan (IntervalMatrix& A, vector<IntervalMatrix>& permutations,vector < vector < pair <int, int> > > & pair_contr_all , double prec){
+
 			int temp_piv;
 			set <int> rows_checked;
 			std::vector< std::vector <int> > comb_piv;
 			/*get all possible combinations of pivots*/
-			combinatorial(A,A.nb_cols(),A.nb_rows(),comb_piv);
+			combinatorial(A.nb_cols(),A.nb_rows(),comb_piv);
 			vector <pair<int,int> > aux_list;
 			IntervalMatrix B(1,1);
 			B.resize(A.nb_rows(),A.nb_cols());
 			IntervalMatrix perm(1,1);
 			perm.resize(B.nb_rows(),B.nb_rows());
-
+			bool to_add;
 			/*perform the gauss elimination for each comb_piv element*/
 			while(comb_piv.size() > 0){
+				to_add = false;
 				aux_list.clear();
 				/*Initialize the permutation matrix*/
 				for (int i = 0; i<A.nb_rows() ; i++)
@@ -301,12 +304,12 @@ namespace ibex {
 						if (( (B[i][actual_col].mag() < -prec) || (B[i][actual_col].mag() > prec)) && !(B[i][actual_col].contains(0)) && (rows_checked.count(i) != 1)){
 							rows_checked.insert(i);
 							temp_piv = i;
-							aux_list.push_back(make_pair(temp_piv,actual_col));
+							aux_list.push_back(make_pair(actual_col,temp_piv));
+							to_add = true;
 							break;
 						}
-					if (temp_piv==-1)
-						break;
-					else{
+
+					if (temp_piv != -1){
 						Interval coef = B[temp_piv][actual_col];
 						IntervalMatrix aux_perm(1,1);
 						aux_perm.resize(A.nb_rows(),A.nb_rows());
@@ -333,19 +336,19 @@ namespace ibex {
 				}
 
 				/*If gauss is perform complete, add the matrix perm to the list permutation*/
-				if (temp_piv!=-1){
+				if (to_add == true){
 					pair_contr_all.push_back(aux_list);
 					permutations.push_back(perm);
 				}
 				comb_piv.pop_back();
 			}
 		}
-	void gauss_jordan_all (Matrix& A, vector<Matrix>& permutations,vector < vector < pair <int, int> > > & proj_vars , double prec){
+	void all_gauss_jordan (Matrix& A, vector<Matrix>& permutations,vector < vector < pair <int, int> > > & proj_vars , double prec){
 		int temp_piv;
 		set <int> rows_checked;
 		std::vector< std::vector <int> > comb_piv;
 		/*get all possible combinations of pivots*/
-		combinatorial(A,A.nb_cols(),A.nb_rows(),comb_piv);
+		combinatorial(A.nb_cols(),A.nb_rows(),comb_piv);
 		vector <pair<int,int> > aux_list;
 		Matrix B(1,1);
 		B.resize(A.nb_rows(),A.nb_cols());

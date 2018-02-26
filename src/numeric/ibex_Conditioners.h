@@ -28,7 +28,7 @@ namespace ibex {
     * \brief .
     */
 
-	void combinatorial(IntervalMatrix A, int cols,int rows,std::vector< std::vector <int> > & comb_piv);
+	void combinatorial(int cols,int rows,std::vector< std::vector <int> > & comb_piv);
 
 	/*TODO: add comments compare function/*
 
@@ -70,12 +70,12 @@ namespace ibex {
 	  * on the list perm_list. The pivot variables and the corresponding equation are stored in proj_vars in order to be
 	  * contracted by the projection operator.
 	 */
-	void all_gauss_jordan (Matrix A, IntervalVector x, vector<Matrix> & perm_list,vector <vector <pair <int,int> > > & proj_vars , double prec);
+	void all_gauss_jordan (Matrix A, vector<Matrix> & perm_list,vector <vector <pair <int,int> > > & proj_vars , double prec);
 	 /*
 	  * \brief Same as above, but A is an interval matrix. The only difference is that the pivot element can not contain the zero
      */
 
-	void all_gauss_jordan (IntervalMatrix A, IntervalVector x, vector<IntervalMatrix> & perm_list,vector <vector <pair <int,int> > > & proj_vars , double prec);
+	void all_gauss_jordan (IntervalMatrix& A, vector<IntervalMatrix>& permutations,vector < vector < pair <int, int> > > & pair_contr_all , double prec);
 }
 
 
