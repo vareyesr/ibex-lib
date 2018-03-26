@@ -71,7 +71,7 @@ System* get_square_eq_sys(Memory& memory, System& sys) {
 
 Ctc* DefaultSolver::ctc (System& sys, double prec) {
 //	Array<Ctc> ctc_list(4);
-	Array<Ctc> ctc_list(3);
+	Array<Ctc> ctc_list(2);
 	// first contractor : non incremental hc4
 
 	ctc_list.set_ref(1, rec(new CtcHC4 (sys.ctrs,0.01)));
@@ -87,7 +87,7 @@ Ctc* DefaultSolver::ctc (System& sys, double prec) {
 
 	//System& norm_sys=rec(new NormalizedSystem(sys));
 
-	ctc_list.set_ref(0,rec(new GaussContractor(sys)));
+//	ctc_list.set_ref(0,rec(new GaussContractor(sys)));
 
 //	ctc_list.set_ref(index,rec(new CtcFixPoint(rec(new CtcCompo(
 //			rec(new CtcPolytopeHull(rec(new LinearizerXTaylor(sys, LinearizerXTaylor::RELAX, LinearizerXTaylor::RANDOM_OPP, LinearizerXTaylor::HANSEN)))),

@@ -61,7 +61,7 @@ ExtendedSystem& DefaultOptimizer::get_ext_sys(const System& sys, double eps_h) {
 
 DefaultOptimizer::DefaultOptimizer(const System& sys, double rel_eps_f, double abs_eps_f, double eps_h, bool rigor, bool inHC4, double random_seed, double eps_x) :
 		Optimizer(sys.nb_var,
-			  ctc(get_ext_sys(sys,eps_h)), // warning: we don't know which argument is evaluated first
+			  ctc(sys,get_ext_sys(sys,eps_h)), // warning: we don't know which argument is evaluated first
 //			  rec(new SmearSumRelative(get_ext_sys(sys,eps_h),eps_x)),
 			  rec(new LSmear(get_ext_sys(sys,eps_h),eps_x)),
 			  rec(rigor? (LoupFinder*) new LoupFinderCertify(sys,rec(new LoupFinderDefault(get_norm_sys(sys,eps_h),inHC4))) :
@@ -81,26 +81,26 @@ DefaultOptimizer::DefaultOptimizer(const System& sys, double rel_eps_f, double a
 
 }
 
-Ctc&  DefaultOptimizer::ctc(const System& ext_sys) {
-	Array<Ctc> ctc_list(3);
-
-	// first contractor on ext_sys : incremental HC4 (propag ratio=0.01)
-	ctc_list.set_ref(0, rec(new CtcHC4 (ext_sys.ctrs,0.01,true)));
-	// second contractor on ext_sys : "Acid" with incremental HC4 (propag ratio=0.1)
-	ctc_list.set_ref(1, rec(new CtcAcid (ext_sys,rec(new CtcHC4 (ext_sys.ctrs,0.1,true)),true)));
-	// the last contractor is "XNewton"
-//	if (ext_sys.nb_ctr > 1) {
-//		ctc_list.set_ref(2,rec(new CtcFixPoint
-//				(rec(new CtcCompo(
-//						rec(new CtcPolytopeHull(rec(new LinearizerCombo (ext_sys,LinearizerCombo::XNEWTON)))),
-//								rec(new CtcHC4(ext_sys.ctrs,0.01)))), default_relax_ratio)));
-//	} else {
-//		ctc_list.set_ref(2,rec(new CtcPolytopeHull(rec(new LinearizerCombo (ext_sys,LinearizerCombo::XNEWTON)))));
-//	}
-
+Ctc&  DefaultOptimizer::ctc(const System& sys, const ExtendedSystem& ext_sys) {
+	Array<Ctc> ctc_list(4);
 	if (ext_sys.nb_ctr > 1) {
-		ctc_list.set_ref(2,rec(new GaussContractor(ext_sys)));
+			ctc_list.set_ref(0,rec(new GaussContractor(sys, ext_sys.goal_var())));
+		}
+	// first contractor on ext_sys : incremental HC4 (propag ratio=0.01)
+	ctc_list.set_ref(1, rec(new CtcHC4 (ext_sys.ctrs,0.01,true)));
+	// second contractor on ext_sys : "Acid" with incremental HC4 (propag ratio=0.1)
+	ctc_list.set_ref(2, rec(new CtcAcid (ext_sys,rec(new CtcHC4 (ext_sys.ctrs,0.1,true)),true)));
+	// the last contractor is "XNewton"
+	if (ext_sys.nb_ctr > 1) {
+		ctc_list.set_ref(3,rec(new CtcFixPoint
+				(rec(new CtcCompo(
+						rec(new CtcPolytopeHull(rec(new LinearizerCombo (ext_sys,LinearizerCombo::XNEWTON)))),
+								rec(new CtcHC4(ext_sys.ctrs,0.01)))), default_relax_ratio)));
+	} else {
+		ctc_list.set_ref(3,rec(new CtcPolytopeHull(rec(new LinearizerCombo (ext_sys,LinearizerCombo::XNEWTON)))));
 	}
+
+
 	return rec(new CtcCompo(ctc_list));
 }
 

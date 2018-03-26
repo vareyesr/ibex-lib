@@ -22,12 +22,12 @@ namespace ibex {
 	class GaussContractor : public Ctc {
 	public:
 
-		GaussContractor (const System& sys);
+		GaussContractor (const System& sys, int goal_var);
 
 		/*
 	    * \brief This function
 	    */
-		void contract(IntervalVector & box);
+		void contract(IntervalVector & ext_box);
 
 
 		/*
@@ -35,12 +35,20 @@ namespace ibex {
 	    */
 		void init_system(IntervalVector box, const System& sys);
 
+		void write_ext_box(const IntervalVector& box, IntervalVector& ext_box);
 
+		void read_ext_box(const IntervalVector& ext_box, IntervalVector& box);
 
 		const System& sys;
 		vector<IntervalMatrix> perm_list;
 		IntervalMatrix A;
 		IntervalVector b;
+		/**
+		 * \brief Index of the goal variable.
+		 *
+		 * See #ExtendedSystem.goal_var().
+		 */
+		const int goal_var;
 	};
 
 

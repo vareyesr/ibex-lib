@@ -12,7 +12,7 @@ using namespace std;
 namespace ibex {
 
 	bool compare(const std::pair<double, std::pair<int,int> >&i, const std::pair<double, std::pair<int,int> >&j){
-		return i.first < j.first;
+		return i.first > j.first;
 	}
 
 	void combinatorial(int cols,int rows,std::vector< std::vector <int> > & comb_piv){
@@ -59,7 +59,7 @@ namespace ibex {
 				/*aca*/
 				for (int i = 0 ; i < PA.nb_rows() ; i++){
 					if ((ban_rows.count(i) != 1) &&  !(PA[i][j].contains(0))){
-						impact_values[i][j] = PA[i][j].mag()*x[j].diam();
+						impact_values[i][j] = PA[i][j].mag();
 						exist_value = true;
 					}
 				}
