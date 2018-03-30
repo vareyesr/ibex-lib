@@ -263,7 +263,7 @@ namespace ibex {
 					break;
 				}
 			}
-			if (!(aux_list.empty())){
+			if ((aux_list.size()==A.nb_rows())){
 				proj_vars.push_back(aux_list);
 				perm_list.push_back(perm);
 			}

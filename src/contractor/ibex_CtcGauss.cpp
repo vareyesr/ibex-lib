@@ -30,35 +30,43 @@ void GaussContractor::read_ext_box(const IntervalVector& ext_box, IntervalVector
 
 	GaussContractor::GaussContractor (const System& sys, int goal_var) : sys(sys), Ctc(sys.ctrs.size()), A(1,1), b(1), goal_var(goal_var) {
 		/*only for contrained problems*/
-//		init_system(initial_box,sys);
-
 	}
 
 	void GaussContractor::contract(IntervalVector & ext_box){
+
 		IntervalVector box(sys.nb_var);
+		IntervalVector xn(sys.nb_var);
 		read_ext_box(ext_box,box);
 		init_system(box,sys);
-//		IntervalVector xn = box-box.mid();
+
+		/*just the linearization*/
+//		xn = box-box.mid();
 //		IntervalVector last_box= xn;
 //		bwd_mul(b,A,xn,0.01);
+//		if (xn.is_empty()){
+//			ext_box.set_empty();
+//			return;
+//		}
+//		if (xn != last_box){
+//			box = (box.mid()+xn);
+//			write_ext_box(box,ext_box);
+//		}
+
+		/*Gauss+linearization*/
 		vector <vector <pair <int,int> > > proj_vars;
-		/*cleaning of permutation, PA,Pb lists*/
+//		/*cleaning of permutation, PA,Pb lists*/
 		perm_list.clear();
 		bool box_size_change = false;
-		IntervalVector xn = box-box.mid();
+		xn = box-box.mid();
 		IntervalVector box_aux = xn;
 		/*Perform gauss Jordan on the matrix A in order to create the permutation list*/
 		best_gauss_jordan (A, xn, perm_list, proj_vars,1e-8);
-//		all_gauss_jordan (A, perm_list,proj_vars, 1e-8);
-//			bool do_contraction = true;
-//			IntervalVector last_box= xn;
-//		while(do_contraction){
 		IntervalVector last_box= xn;
-		for (int i = 0 ; i < perm_list.size() ; i++){
-			IntervalMatrix P = perm_list[i];
-			IntervalMatrix An=P*A;
-			IntervalVector bn= P*b;
-
+		if (perm_list.size() > 0){
+			for (int i = 0 ; i < perm_list.size() ; i++){
+				IntervalMatrix P = perm_list[i];
+				IntervalMatrix An=P*A;
+				IntervalVector bn= P*b;
 				for (int j = 0 ; j < proj_vars[i].size() ; j++){
 					int var = proj_vars[i][j].first;
 					int eq = proj_vars[i][j].second;
@@ -68,46 +76,39 @@ void GaussContractor::read_ext_box(const IntervalVector& ext_box, IntervalVector
 					}
 				}
 				bwd_mul(bn,An,xn,0.01);
-//				for (int k = 0 ; k  < proj_vars[i].size() ; k++){
-//					int var = proj_vars[i][k].first;
-//					int eq = proj_vars[i][k].second;
-//					Interval value(bn[eq]);
-//					for (int l = 0; l < An.nb_cols(); l++){
-//						if (l != var){
-//							value = value +(-An[eq][l]*xn[l]);
-//						}
-//					}
-//					value = value/An[eq][var];
-//					xn[var] = value&=xn[var];
-//					if(xn.is_empty()){
-//						box.set_empty();
-//						return;
-//					}
-//				}
+				if (xn.is_empty()){
+					ext_box.set_empty();
+					return;
+				}
 			}
-//			if (xn == last_box) do_contraction = false;
-//			else{
-//
-//				perm_list.clear(); proj_vars.clear();
-//				best_gauss_jordan (A, xn, perm_list, proj_vars,1e-8);
-//				box_size_change = true;
-//			}
-//		}
-		if (xn.is_empty()){
-			ext_box.set_empty();
-			return;
+			if (xn != last_box){
+				box = (box.mid()+xn);
+				write_ext_box(box,ext_box);
+			}
 		}
-		if (xn != last_box){
-			box = (box.mid()+xn);
-			write_ext_box(box,ext_box);
+		else {
+			bwd_mul(b,A,xn,0.01);
+			if (xn.is_empty()){
+				ext_box.set_empty();
+				return;
+			}
+			if (xn != last_box){
+				box = (box.mid()+xn);
+				write_ext_box(box,ext_box);
+			}
 		}
 	}
 
 	void GaussContractor::init_system(IntervalVector initial_box, const System& sys){
-//		A.resize(sys.ctrs.size(),sys.box.size());
-//		sys.f_ctrs.hansen_matrix(initial_box,A);
-		b = -sys.ctrs_eval(initial_box.mid());
-		A = sys.ctrs_jacobian(initial_box);
+		b.resize(sys.ctrs.size());
+		A.resize(sys.ctrs.size(),sys.box.size());
+		sys.f_ctrs.hansen_matrix(initial_box,A);
+		for (int i = 0; i < b.size() ; i++){
+			if (sys.ops[i] == EQ) b[i] = -sys.ctrs_eval(initial_box.mid())[i];
+			else if (sys.ops[i] == LEQ || sys.ops[i] == LT) b[i] = Interval(NEG_INFINITY,-sys.ctrs_eval(initial_box.mid()).ub()[i]);
+			else if (sys.ops[i] == GEQ || sys.ops[i] == GT) b[i] = Interval(-sys.ctrs_eval(initial_box.mid()).lb()[i],POS_INFINITY);
+		}
+//		A = sys.ctrs_jacobian(initial_box);
 	}
 
 
