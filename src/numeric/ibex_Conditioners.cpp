@@ -59,7 +59,7 @@ namespace ibex {
 				/*aca*/
 				for (int i = 0 ; i < PA.nb_rows() ; i++){
 					if ((ban_rows.count(i) != 1) &&  !(PA[i][j].contains(0))){
-						impact_values[i][j] = PA[i][j].mag();
+						impact_values[i][j] = PA[i][j].mag()*x[j].mag();
 						exist_value = true;
 					}
 				}
@@ -263,7 +263,7 @@ namespace ibex {
 					break;
 				}
 			}
-			if ((aux_list.size()==A.nb_rows())){
+			if (aux_list.size()>0){
 				proj_vars.push_back(aux_list);
 				perm_list.push_back(perm);
 			}

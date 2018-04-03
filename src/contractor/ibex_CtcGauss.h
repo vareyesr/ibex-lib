@@ -28,8 +28,6 @@ namespace ibex {
 	    * \brief This function
 	    */
 		void contract(IntervalVector & ext_box);
-
-
 		/*
 	    * \brief This function
 	    */
@@ -43,6 +41,7 @@ namespace ibex {
 		vector<IntervalMatrix> perm_list;
 		IntervalMatrix A;
 		IntervalVector b;
+		int counter;
 		/**
 		 * \brief Index of the goal variable.
 		 *

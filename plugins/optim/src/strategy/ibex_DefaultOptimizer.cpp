@@ -83,7 +83,7 @@ DefaultOptimizer::DefaultOptimizer(const System& sys, double rel_eps_f, double a
 
 Ctc&  DefaultOptimizer::ctc(const System& sys, const ExtendedSystem& ext_sys) {
 	Array<Ctc> ctc_list(4);
-
+	ctc_list.set_ref(0,rec(new GaussContractor(sys, ext_sys.goal_var())));
 	// first contractor on ext_sys : incremental HC4 (propag ratio=0.01)
 	ctc_list.set_ref(1, rec(new CtcHC4 (ext_sys.ctrs,0.01,true)));
 	// second contractor on ext_sys : "Acid" with incremental HC4 (propag ratio=0.1)
@@ -97,9 +97,7 @@ Ctc&  DefaultOptimizer::ctc(const System& sys, const ExtendedSystem& ext_sys) {
 	} else {
 		ctc_list.set_ref(3,rec(new CtcPolytopeHull(rec(new LinearizerCombo (ext_sys,LinearizerCombo::XNEWTON)))));
 	}
-	if (sys.nb_ctr > 1) {
-			ctc_list.set_ref(0,rec(new GaussContractor(sys, ext_sys.goal_var())));
-		}
+
 
 	return rec(new CtcCompo(ctc_list));
 }

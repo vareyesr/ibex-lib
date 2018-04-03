@@ -30,10 +30,11 @@ void GaussContractor::read_ext_box(const IntervalVector& ext_box, IntervalVector
 
 	GaussContractor::GaussContractor (const System& sys, int goal_var) : sys(sys), Ctc(sys.ctrs.size()), A(1,1), b(1), goal_var(goal_var) {
 		/*only for contrained problems*/
+		counter = 0;
 	}
 
 	void GaussContractor::contract(IntervalVector & ext_box){
-
+		if (counter > ext_box.size()) return;
 		IntervalVector box(sys.nb_var);
 		IntervalVector xn(sys.nb_var);
 		read_ext_box(ext_box,box);
@@ -83,7 +84,13 @@ void GaussContractor::read_ext_box(const IntervalVector& ext_box, IntervalVector
 			}
 			if (xn != last_box){
 				box = (box.mid()+xn);
-				write_ext_box(box,ext_box);
+				if (box.is_subset(ext_box)){
+					write_ext_box(box,ext_box);
+					counter = 0;
+				}
+				else
+					counter++;
+
 			}
 		}
 		else {
@@ -94,7 +101,12 @@ void GaussContractor::read_ext_box(const IntervalVector& ext_box, IntervalVector
 			}
 			if (xn != last_box){
 				box = (box.mid()+xn);
-				write_ext_box(box,ext_box);
+				if (box.is_subset(ext_box)){
+					write_ext_box(box,ext_box);
+					counter = 0;
+				}
+				else
+					counter++;
 			}
 		}
 	}
