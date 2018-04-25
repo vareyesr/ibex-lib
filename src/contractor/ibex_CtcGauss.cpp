@@ -31,6 +31,7 @@ void GaussContractor::read_ext_box(const IntervalVector& ext_box, IntervalVector
 	GaussContractor::GaussContractor (const System& sys, int goal_var) : sys(sys), Ctc(sys.ctrs.size()), A(1,1), b(1), goal_var(goal_var) {
 		/*only for contrained problems*/
 		counter = 0;
+		counter = 0;
 	}
 
 	void GaussContractor::contract(IntervalVector & ext_box){
