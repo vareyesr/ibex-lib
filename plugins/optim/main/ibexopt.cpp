@@ -1,50 +1,34 @@
-//============================================================================
-//                                  I B E X
-//
-//                               ************
-//                                  IbexOpt
-//                               ************
-//
-// Author      : Gilles Chabert
-// Copyright   : IMT Atlantique (France)
-// License     : See the LICENSE file
-// Last Update : Jul 09, 2017
-//============================================================================
+/*
+ * optimsolver.cpp
+ *
+ *  Created on: 21 dic. 2017
+ *      Author: iaraya
+ */
 
 #include "ibex.h"
 #include "args.hxx"
 
-#include <sstream>
-
-#ifndef _IBEX_WITH_OPTIM_
-#error "You need to install the IbexOpt plugin (--with-optim)."
-#endif
-
 using namespace std;
 using namespace ibex;
 
-int main(int argc, char** argv) {
+double get_prec(double loup, double uplo);
 
-	stringstream _rel_eps_f, _abs_eps_f, _eps_h, _random_seed, _eps_x;
-	_rel_eps_f << "Relative precision on the objective. Default value is 1e" << round(::log10(Optimizer::default_rel_eps_f)) << ".";
-	_abs_eps_f << "Absolute precision on the objective. Default value is 1e" << round(::log10(Optimizer::default_abs_eps_f)) << ".";
-	_eps_h << "Equality relaxation value. Default value is 1e" << round(::log10(NormalizedSystem::default_eps_h)) << ".";
-	_random_seed << "Random seed (useful for reproducibility). Default value is " << DefaultOptimizer::default_random_seed << ".";
-	_eps_x << "Precision on the variable (**Deprecated**). Default value is 0.";
+int main(int argc, char** argv){
+
+	try {
 
 	args::ArgumentParser parser("********* IbexOpt (defaultoptimizer) *********.", "Solve a Minibex file.");
 	args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
-	args::ValueFlag<double> rel_eps_f(parser, "float", _rel_eps_f.str(), {'r', "rel-eps-f"});
-	args::ValueFlag<double> abs_eps_f(parser, "float", _abs_eps_f.str(), {'a', "abs-eps-f"});
-	args::ValueFlag<double> eps_h(parser, "float", _eps_h.str(), {"eps-h"});
-	args::ValueFlag<double> timeout(parser, "float", "Timeout (time in seconds). Default value is +oo.", {'t', "timeout"});
-	args::ValueFlag<double> random_seed(parser, "float", _random_seed.str(), {"random-seed"});
-	args::ValueFlag<double> eps_x(parser, "float", _eps_x.str(), {"eps-x"});
-	args::ValueFlag<double> initial_loup(parser, "float", "Intial \"loup\" (a priori known upper bound).", {"initial-loup"});
-	args::Flag rigor(parser, "rigor", "Activate rigor mode (certify feasibility of equalities).", {"rigor"});
-	args::Flag trace(parser, "trace", "Activate trace. Updates of loup/uplo are printed while minimizing.", {"trace"});
-	args::Flag format(parser, "format", "Display the output format in quiet mode", {"format"});
-	args::Flag quiet(parser, "quiet", "Print no message and display minimal information (for automatic output processing). See --format.",{'q',"quiet"});
+	args::ValueFlag<std::string> _filtering(parser, "string", "the filtering method", {'f', "filt"});
+	args::ValueFlag<std::string> _linear_relax(parser, "string", "the linear relaxation method", {"linear_relax"});
+	args::ValueFlag<std::string> _bisector(parser, "string", "the bisection method", {'b', "bis"});
+	args::ValueFlag<std::string> _strategy(parser, "string", "the search strategy", {'s', "search"});
+	args::ValueFlag<double> _eps_x(parser, "float", "eps_x (the precision of the boxes)", {"exp_x"});
+	args::ValueFlag<double> _eps(parser, "float", "eps (the precision of the objective)", {"eps"});
+	args::ValueFlag<double> _timelimit(parser, "float", "timelimit", {'t',"timelimit"});
+	args::ValueFlag<int> _seed(parser, "int", "seed", {"seed"});
+	args::ValueFlag<std::string> _loup_mode(parser, "loup_mode", "UpperBounding mode (xt, abst or both).", {"lmode"});
+	args::Flag _trace(parser, "trace", "Activate trace. Updates of loup/uplo are printed while minimizing.", {"trace"});
 
 	args::Positional<std::string> filename(parser, "filename", "The name of the MINIBEX file.");
 
@@ -70,150 +54,222 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
-	if (format) {
-		cout <<
-		"\n"
-		"-------------------------------------------------------------\n"
-		"Output format with --quiet (for automatic output processing):\n"
-		"-------------------------------------------------------------\n"
-		"[line 1] - 1 value: the status of the optimization. Possible values are:\n"
-		"\t\t* 0=success\n"
-		"\t\t* 1=infeasible problem\n"
-		"\t\t* 2=no feasible point found\n"
-		"\t\t* 3=possibly unbounded objective (-oo)\n"
-		"\t\t* 4=time out\n"
-		"\t\t* 5=unreached precision.\n"
-		"[line 2] - 2 values: \'uplo\', the uppest lower bound of the objective and \n"
-		"\t   \'loup\', the lowest upper bound of the objective. We have\n\n"
-		"\t\t\t uplo<= f* <=loup\n\n"
-		"[line 3] In standard mode:\n"
-		"\t - n values: x1*, ... xn* (where x* is a minimizer).\n"
-		"\t In rigor mode (--rigor):\n"
-		"\t - 2*n values: lb(x1*), ub(x1*),..., lb(xn*), ub(xn*) (box containing a minimizer)\n"
-		"[line 4] - 2 values: time (in seconds) and number of cells.\n\n";
+	string filtering = (_filtering)? _filtering.Get() : "acidhc4";
+	cout << "Filtering: " << filtering << endl;
+	string linearrelaxation= (_linear_relax)? _linear_relax.Get() : "compo";
+	cout << "Relax method: " << linearrelaxation << endl;
+	string bisection= (_bisector)? _bisector.Get() : "lsmear";
+	cout << "Bisector: " << bisection << endl;
+	string strategy= (_strategy)? _strategy.Get() : "feasdiv";
+	cout << "Search strategy: " << strategy << endl;
+	double prec= (_eps_x)? _eps_x.Get() : 1e-7;
+	cout << "prec_x: " << prec << endl;
+	double goalprec= (_eps)? _eps.Get() : 1e-6 ;
+	cout << "prec_goal: " << goalprec << endl;
+	double timelimit = (_timelimit)? _timelimit.Get() : 3600 ;
+	cout << "timelimit: " << timelimit << endl;
+	int nseed= (_seed)? _seed.Get() : 1 ;
+	cout << "seed: " << nseed << endl;
 
-		exit(0);
+
+
+ 	double eqeps= 1.e-8;
+ 	double default_relax_ratio = 0.2;
+	srand(nseed);
+	RNG::srand(nseed);
+
+    System* orig_sys,*sys;
+	LoupFinderDefault* loupfinder;
+    std::size_t found = string(filename.Get().c_str()).find(".nl");
+	if (found!=std::string::npos){
+	       AmplInterface interface (argv[1]);
+	       orig_sys= new System(interface);
+     }else
+           orig_sys = new System(argv[1]);
+
+	// the extended system
+	if(strategy=="solver") sys=orig_sys;
+	else {
+		sys=new ExtendedSystem(*orig_sys,eqeps);
+		NormalizedSystem* norm_sys = new NormalizedSystem(*orig_sys,eqeps); //orig_sys
+		loupfinder = new  LoupFinderDefault(*norm_sys,true);
 	}
 
-	if (filename.Get()=="") {
-		ibex_error("no input file (try ibexopt --help)");
-		exit(1);
+
+
+	// Build the bisection heuristic
+	// --------------------------
+	Bsc * bs;
+
+	if (bisection=="roundrobin")
+	  bs = new RoundRobin (prec);
+	else if (bisection== "largestfirst")
+          bs= new LargestFirst();
+	else if (bisection=="smearsum")
+	  bs = new SmearSum(*sys,prec);
+	else if (bisection=="smearmax")
+	  bs = new SmearMax(*sys,prec);
+	else if (bisection=="smearsumrel")
+	  bs = new SmearSumRelative(*sys,prec);
+	else if (bisection=="smearmaxrel")
+	  bs = new SmearMaxRelative(*sys,prec);
+	else if (bisection=="lsmear")
+	  bs = new LSmear(*sys,prec);
+
+	else {cout << bisection << " is not an implemented  bisection mode "  << endl; return -1;}
+
+	// Build the contractors
+
+	// the first contractor called
+	CtcHC4 hc4(sys->ctrs,0.01,true);
+	// hc4 inside acid and 3bcid : incremental propagation beginning with the shaved variable
+	CtcHC4 hc44cid(sys->ctrs,0.1,true);
+	// hc4 inside xnewton loop
+	CtcHC4 hc44xn (sys->ctrs,0.01,false);
+	// The 3BCID contractor on all variables (component of the contractor when filtering == "3bcidhc4")
+	Ctc3BCid c3bcidhc4(hc44cid);
+	// hc4 followed by 3bcidhc4 : the actual contractor used when filtering == "3bcidhc4"
+	CtcCompo hc43bcidhc4 (hc4, c3bcidhc4);
+	// The ACID contractor (component of the contractor  when filtering == "acidhc4")
+	CtcAcid acidhc4(*sys,hc44cid,1);
+	// hc4 followed by acidhc4 : the actual contractor used when filtering == "acidhc4"
+	CtcCompo hc4acidhc4 (hc4, acidhc4);
+
+	string filtering2="acidhc4";
+	Ctc* gauss = new GaussContractor(*orig_sys,dynamic_cast<ExtendedSystem*>(sys)->goal_var());
+	Ctc* ctc;
+	if (filtering == "hc4")
+	  ctc= &hc4;
+	else if (filtering =="acidhc4")
+	  ctc= &hc4acidhc4;
+	else if (filtering =="3bcidhc4")
+	  ctc= &hc43bcidhc4;
+	else{cout << filtering <<  " is not an implemented  contraction  mode "  << endl; return -1;}
+	ctc= new CtcCompo (*gauss,*ctc);
+    CtcNewton* ctcnewton=NULL;
+    if(strategy=="solver"){
+	    ctcnewton=new CtcNewton(sys->f_ctrs,5e8,prec,1.e-4);
+		ctc =  new CtcCompo (*ctc, *ctcnewton);
 	}
 
-	try {
 
-		// Load a system of equations
-		System sys(filename.Get().c_str());
+	Linearizer* lr;
+	if (linearrelaxation=="art")
+		  lr= new LinearizerCombo(*sys,LinearizerCombo::ART);
+	else if  (linearrelaxation=="compo")
+		  lr= new LinearizerCombo(*sys,LinearizerCombo::COMPO);
+	else if (linearrelaxation=="xn")
+	  lr= new LinearizerXTaylor (*sys, LinearizerXTaylor::RELAX, LinearizerXTaylor::RANDOM_OPP);
 
-		if (!sys.goal) {
-			ibex_error(" input file has not goal (it is not an optimization problem).");
-		}
+	//	else {cout << linearrelaxation  <<  " is not an implemented  linear relaxation mode "  << endl; return -1;}
+	// fixpoint linear relaxation , hc4  with default fix point ratio 0.2
+	CtcFixPoint* cxn;
+	CtcPolytopeHull* cxn_poly;
+	CtcCompo* cxn_compo;
+	if (linearrelaxation=="compo" || linearrelaxation=="art"|| linearrelaxation=="xn"|| linearrelaxation=="abs")
+          {
+		cxn_poly = new CtcPolytopeHull(*lr);
+		cxn_compo =new CtcCompo(*cxn_poly, hc44xn);
+		cxn = new CtcFixPoint (*cxn_compo, default_relax_ratio);
+	  }
+	//  the actual contractor  ctc + linear relaxation
+	Ctc* ctcxn;
+	if (linearrelaxation=="compo" || linearrelaxation=="art"|| linearrelaxation=="xn"|| linearrelaxation=="abs")
+          ctcxn= new CtcCompo  (*ctc, *cxn);
+	else
+	  ctcxn = ctc;
 
-		if (!quiet) {
-			cout << endl << "************************ setup ************************" << endl;
-			cout << "  file loaded:\t" << filename.Get() << endl;
-		}
+	// one point probed when looking for a new feasible point (updating the loup)
+	int samplesize=1;
 
-		if (rel_eps_f) {
-			if (!quiet)
-				cout << "  rel-eps-f:\t" << rel_eps_f.Get() << "\t(relative precision on objective)" << endl;
-		}
+	if(strategy=="solver"){
+		// A "CellStack" means a depth-first search.
+		CellStack buff;
 
-		if (abs_eps_f) {
-			if (!quiet)
-				cout << "  abs-eps-f:\t" << abs_eps_f.Get() << "\t(absolute precision on objective)" << endl;
-		}
 
-		if (eps_h) {
-			if (!quiet)
-				cout << "  eps-h:\t" << eps_h.Get() << "\t(equality thickening)" << endl;
-		}
+		Solver s(*sys, *ctcxn, *bs, buff, Vector(sys->nb_var,prec), Vector(sys->nb_var,POS_INFINITY));
+		s.time_limit = timelimit;;
+		s.trace=_trace;  // solutions are printed as soon as found when trace=1
 
-		if (eps_x) {
-			if (!quiet)
-				cout << "  eps-x:\t" << eps_x.Get() << "\t(precision on variables domain)" << endl;
-		}
+		// Solve the system and get the solutions
+		Solver::Status state=s.solve(sys->box);
 
-		// This option certifies feasibility with equalities
-		if (rigor) {
-			if (!quiet)
-				cout << "  rigor mode:\tON\t(feasibility of equalities certified)" << endl;
-		}
 
-		if (initial_loup) {
-			if (!quiet)
-				cout << "  initial loup:\t" << initial_loup.Get() << " (a priori upper bound of the minimum)" << endl;
-		}
+		cout << state << endl;
+		s.report();
 
-		// Fix the random seed for reproducibility.
-		if (random_seed) {
-			if (!quiet)
-				cout << "  random seed:\t" << random_seed.Get() << endl;
-		}
 
-		bool inHC4=true;
+		// Display the number of boxes (called "cells")
+		// generated during the search
+		cout << "number of cells=" << s.get_nb_cells() << endl;
+		// Display the cpu time used
+		cout << "cpu time used=" << s.get_time() << "s."<< endl;
 
-		if (sys.nb_ctr<sys.f_ctrs.image_dim()) {
-			inHC4=false;
-		}
+		cout << argv[1] << " " << s.get_manifold().size() << " " << s.get_time() << " " <<
+		s.get_nb_cells() << " " << (s.get_time()>timelimit) << endl;
 
-		// Build the default optimizer
-		DefaultOptimizer o(sys,
-				rel_eps_f? rel_eps_f.Get() : Optimizer::default_rel_eps_f,
-				abs_eps_f? abs_eps_f.Get() : Optimizer::default_abs_eps_f,
-				eps_h ?    eps_h.Get() :     NormalizedSystem::default_eps_h,
-				rigor, inHC4,
-				random_seed? random_seed.Get() : DefaultOptimizer::default_random_seed,
-				eps_x ?    eps_x.Get() :     Optimizer::default_eps_x
-				);
-
-		// This option limits the search time
-		if (timeout) {
-			if (!quiet)
-				cout << "  timeout:\t" << timeout.Get() << "s" << endl;
-			o.timeout=timeout.Get();
-		}
-
-		// This option prints each better feasible point when it is found
-		if (trace) {
-			if (!quiet)
-				cout << "  trace:\tON" << endl;
-			o.trace=trace.Get();
-		}
-
-		if (!inHC4) {
-			cerr << "\n  \033[33mwarning: inHC4 disabled\033[0m (does not support vector/matrix operations)" << endl;
-		}
-
-		if (!quiet) {
-			cout << "*******************************************************" << endl << endl;
-		}
-
-		// display solutions with up to 12 decimals
-		cout.precision(12);
-
-		if (!quiet)
-			cout << "running............" << endl << endl;
-
-		// Search for the optimum
-		if (initial_loup)
-			o.optimize(sys.box, initial_loup.Get());
-		else
-			o.optimize(sys.box);
-
-		if (trace) cout << endl;
-
-		// Report some information (computation time, etc.)
-
-		o.report(!quiet);
-
-		return 0;
+		return 1;
 
 	}
-	catch(ibex::UnknownFileException& e) {
-		cerr << "Error: cannot read file '" << filename.Get() << "'" << endl;
+
+
+	// the optimizer : the same precision goalprec is used as relative and absolute precision
+	Optimizer* o=NULL;
+
+	CellBufferOptim* buffer = NULL;
+
+	if(strategy=="lbub")
+		buffer = new CellDoubleHeap(*dynamic_cast<ExtendedSystem*>(sys));
+	else if(strategy=="feasdiv")
+		buffer = new CellBeamSearch(*new CellHeap (*dynamic_cast<ExtendedSystem*>(sys)),
+								       *new CellHeap (*dynamic_cast<ExtendedSystem*>(sys)), *dynamic_cast<ExtendedSystem*>(sys));
+	else {cout << strategy <<  " is not an implemented search strategy "  << endl; return -1;}
+
+	o=new Optimizer(sys->nb_var, *ctcxn,*bs, *loupfinder, *buffer, dynamic_cast<ExtendedSystem*>(sys)->goal_var(),
+	    		prec,goalprec,goalprec);
+
+
+
+	// the trace
+	o->trace=_trace;
+
+	if (o && o->trace)	cout << " sys.box " << sys->box << endl;
+
+	// the allowed time for search
+	o->timeout=timelimit;
+
+    vector<IntervalVector> sols;
+    cout.precision(10);
+	// the search itself
+	o->optimize(orig_sys->box);
+
+	// printing the results
+	if (o->trace)
+	  o->report();
+
+
+	delete bs;
+	if (linearrelaxation=="xn" ||linearrelaxation=="compo" || linearrelaxation=="art" )
+	  {
+		//delete lr;
+	    delete ctcxn;
+	  //  delete cxn;
+	  }
+
+
+
+
+    cout << argv[1] << " " << o->get_uplo() << "," << o->get_loup() << " " << double(o->get_time()) << " " <<
+             double(o->get_nb_cells()) << " " << (o->get_time()>timelimit)<< endl;
+	//loupfinderd->print_results();
+
+
+	return 0;
+
 	}
+
+
 	catch(ibex::SyntaxError& e) {
-		cout << e << endl;
+	  cout << e << endl;
 	}
 }

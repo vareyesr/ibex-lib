@@ -1,0 +1,27 @@
+[base]
+test_instances = instances.txt
+mintime = 2.0 20.0 100.0 1000.0
+maxtime = 3600
+factors = 1 0.833 0.665 0.5 0.2 0.1
+sig_gain = 1.1
+max_seeds = 5
+min_seeds = 5
+algo_names = stateofart ctrgauss1 ctrgauss2
+
+[stateofart]
+exec = "/home/victor/Investigacion/Codigo/Linear-gauss/ibex-lib/bin/stateofart"
+params = _INSTANCE
+outputpos_times = 2
+outputpos_boxes = 3
+
+[ctrgauss1]
+exec = "/home/victor/Investigacion/Codigo/Linear-gauss/ibex-lib/bin/ctrgauss1"
+params = _INSTANCE
+outputpos_times = 2
+outputpos_boxes = 3
+
+[ctrgauss2]
+exec = "/home/victor/Investigacion/Codigo/Linear-gauss/ibex-lib/bin/ctrgauss2"
+params = _INSTANCE
+outputpos_times = 2
+outputpos_boxes = 3
