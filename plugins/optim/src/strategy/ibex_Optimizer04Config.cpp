@@ -249,6 +249,11 @@ LoupFinder& Optimizer04Config::get_loup_finder() {
 	//LoupFinderDefault loupfinder (norm_sys,false);
 }
 
+//const System& Optimizer04Config::get_system() {
+//	return sys;
+//	//LoupFinderDefault loupfinder (norm_sys,false);
+//}
+
 CellBufferOptim& Optimizer04Config::get_cell_buffer() {
 	CellBufferOptim* buffer;
 

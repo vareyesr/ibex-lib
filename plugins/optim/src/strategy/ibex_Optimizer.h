@@ -312,6 +312,11 @@ public:
 	 */
 	bool anticipated_upper_bounding; // TODO: should be set in OptimizerConfig
 
+	std::vector<IntervalMatrix> A;
+	std::vector<IntervalMatrix> PA;
+	std::vector<IntervalVector> b;
+	std::vector<IntervalVector> Pb;
+
 protected:
 	/*
 	 * \brief Initialize the optimizer from a single box.

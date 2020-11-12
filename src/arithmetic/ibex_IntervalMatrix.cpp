@@ -277,7 +277,8 @@ bool bwd_mul(const IntervalMatrix& y, Interval& x1, IntervalMatrix& x2) {
 	return true;
 }
 
-bool bwd_mul(const IntervalVector& y, IntervalMatrix& x1, IntervalVector& x2, double ratio) {
+bool bwd_mul(const IntervalVector y, IntervalMatrix x1, IntervalVector& x2, double ratio) {
+
 	assert(x1.nb_rows()==y.size());
 	assert(x1.nb_cols()==x2.size());
 

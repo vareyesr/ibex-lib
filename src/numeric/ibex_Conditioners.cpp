@@ -204,7 +204,7 @@ namespace ibex {
 //			LPSolver lp_solver(box2.size(), 1000); // p, s y w
 			LPSolver lp_solver(box2.size());
 			lp_solver.reset(box2.size());
-			lp_solver.set_max_iter(10000000000000000);
+			lp_solver.set_max_iter(100000);
 			//lp_solver.set_bounds(IntervalVector(row.size()));
 
 			//initializing domains and objective function
@@ -302,7 +302,7 @@ namespace ibex {
 			LPSolver lp_solver(box2.size()); // p, s y w
 
 			lp_solver.reset(box2.size());
-			lp_solver.set_max_iter(10000000000000000);
+			lp_solver.set_max_iter(1000000);
 			//lp_solver.set_bounds(IntervalVector(row.size()));
 
 			//initializing domains and objective function

@@ -164,6 +164,9 @@ Ctc& DefaultOptimizerConfig::get_ctc() {
 				(rec(new CtcCompo(
 						rec(new CtcLinearRelax(ext_sys)),
 						rec(new CtcHC4(ext_sys,0.01)))), default_relax_ratio)));
+//		ctc_list.set_ref(3,rec(new CtcFixPoint(rec(new CtcCompo(
+//					rec(new CtcPolytopeHull(rec(new LinearizerXTaylor(sys)))),
+//					rec(new CtcHC4 (sys,0.01)))))));
 	} else {
 		ctc_list.set_ref(2,rec(new CtcLinearRelax(ext_sys)));
 	}
@@ -194,6 +197,10 @@ LoupFinder& DefaultOptimizerConfig::get_loup_finder() {
 
 	return rec(rigor? (LoupFinder*) new LoupFinderCertify(sys,rec(new LoupFinderDefault(norm_sys, inHC4))) :
 			(LoupFinder*) new LoupFinderDefault(norm_sys, inHC4), LOUP_FINDER_TAG);
+}
+
+const System& DefaultOptimizerConfig::get_system() {
+	return sys;
 }
 
 CellBufferOptim& DefaultOptimizerConfig::get_cell_buffer() {

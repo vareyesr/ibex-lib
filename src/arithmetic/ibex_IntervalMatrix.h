@@ -640,7 +640,7 @@ bool bwd_mul(const IntervalMatrix& y, Interval& x1, IntervalMatrix& x2);
  *
  * Set $([x]_1,[x]_2)$ to $([x]_1,[x]_2])\cap\{ (x_1,x_2)\in [x]_1\times[x]_2 \ | \ \exists y\in[y],\ y=x_1*x_2\}$.
  */
-bool bwd_mul(const IntervalVector& y, IntervalMatrix& x1, IntervalVector& x2, double ratio);
+bool bwd_mul(const IntervalVector y, IntervalMatrix x1, IntervalVector& x2, double ratio);
 
 /**
  * \brief Projection of y1=x1*x2 (product of a row vector by a matrix).

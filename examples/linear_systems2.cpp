@@ -112,7 +112,6 @@ int main(int argc, char** argv) {
 		b[i] = value;
 	}
 
-
 	/*initial box*/
 	double lb_value,ub_value;
 	for (int i = 0 ; i < box.size() ; i++){
@@ -121,26 +120,28 @@ int main(int argc, char** argv) {
 	}
 
 	IntervalVector sub_box = box;
-	double prop = 0.5;
+	double prop = 1;
 	double alpha = 1-prop;
-	for (int i = 0 ; i < box.size() ; i++){
-		double diam_lb = -box[i].lb();
-		double diam_ub = box[i].ub();
-		if (diam_ub > diam_lb){
-			double beta = alpha*box[i].diam();
-			do{
-				double new_bound = randnum (diam_ub-beta,diam_ub);
-				double gamma = new_bound-box[i].diam()*prop;
-				sub_box[i] = Interval(gamma,new_bound);
-			}while (!sub_box[i].interior_contains(0));
-		}
-		else{
-			do{
+	if (prop != 1){
+		for (int i = 0 ; i < box.size() ; i++){
+			double diam_lb = -box[i].lb();
+			double diam_ub = box[i].ub();
+			if (diam_ub > diam_lb){
 				double beta = alpha*box[i].diam();
-				double new_bound = randnum(diam_lb-beta,diam_lb);
-				double gamma = -new_bound+box[i].diam()*prop;
-				sub_box[i] = Interval(-new_bound,gamma);
-			}while (!sub_box[i].interior_contains(0));
+				do{
+					double new_bound = randnum (diam_ub-beta,diam_ub);
+					double gamma = new_bound-box[i].diam()*prop;
+					sub_box[i] = Interval(gamma,new_bound);
+				}while (!sub_box[i].interior_contains(0));
+			}
+			else{
+				do{
+					double beta = alpha*box[i].diam();
+					double new_bound = randnum(diam_lb-beta,diam_lb);
+					double gamma = -new_bound+box[i].diam()*prop;
+					sub_box[i] = Interval(-new_bound,gamma);
+				}while (!sub_box[i].interior_contains(0));
+			}
 		}
 	}
 	file.close();
@@ -158,7 +159,7 @@ int main(int argc, char** argv) {
 	}
 
 
-
+	cout << A << endl;
 
 	//Contraction of the box using HC4
 	IntervalVector box_hc4 = box;
@@ -191,12 +192,12 @@ int main(int argc, char** argv) {
 	}
 
 	//Contraction of the box using preconditioners
-	//Gauss
+	//Gauss-max
 	IntervalVector box_gauss = box;
 	IntervalMatrix AA=A;
 	vector<IntervalMatrix> perm_list;
 	vector <vector <pair <int,int> > > proj_vars;
-	best_gauss_jordan_new (AA,box,perm_list,proj_vars,1e-7,2);
+	best_gauss_jordan_new (AA,box,perm_list,proj_vars,1e-7,1);
 	IntervalMatrix PA_gauss(perm_list[0]*A);
 	IntervalVector Pb_gauss(perm_list[0]*b);
 	box_gauss = sub_box;    //NUEVO ! SUBCAJA
@@ -210,6 +211,27 @@ int main(int argc, char** argv) {
 		cout << CYAN<<"Min diameter:  " << RESET<<box_gauss.min_diam() << endl;
 		cout << YELLOW<<"Perimeter:  " <<RESET<< perimeter_gauss << endl <<endl<<endl;
 	}
+
+//	//Gauss-diam
+	IntervalVector box_gauss2 = box;
+	IntervalMatrix AA2=A;
+	vector<IntervalMatrix> perm_list2;
+	vector <vector <pair <int,int> > > proj_vars2;
+	best_gauss_jordan_new (AA2,box,perm_list2,proj_vars2,1e-7,2);
+	IntervalMatrix PA_gauss2(perm_list2[0]*A);
+	IntervalVector Pb_gauss2(perm_list2[0]*b);
+	box_gauss2 = sub_box;    //NUEVO ! SUBCAJA
+	bwd_mul(Pb_gauss2, PA_gauss2, box_gauss2, 1e-8);
+	//Perimeter
+	double perimeter_gauss2 = 0;
+	for (int i = 0 ; i < box_gauss2.size() ; i++)
+		perimeter_gauss2+=box_gauss2[i].diam();
+	if (results == 1){
+		cout << "Gauss Contraction"<<endl<<endl;
+		cout << CYAN<<"Min diameter:  " << RESET<<box_gauss2.min_diam() << endl;
+		cout << YELLOW<<"Perimeter:  " <<RESET<< perimeter_gauss2 << endl <<endl<<endl;
+	}
+
 	//Contraction using LP-1-simplex
 	AA=A;
 	IntervalVector LP_1_simplex = box;
@@ -254,9 +276,17 @@ int main(int argc, char** argv) {
 	if (results == 0){
 		cout <<argv[1] <<" "<<box_hc4.min_diam() << " " << perimeter_hc4 << " " << box_2nsimplex.min_diam() << " "
 				<< perimeter_2nsimplex << " " << box_gauss.min_diam() << " " << perimeter_gauss <<
+				" " <<box_gauss2.min_diam() << " " << perimeter_gauss2 <<
 				" " << LP_1_simplex.min_diam() << " " << perimeter_LP1 << " " <<
 				LP_2_simplex.min_diam() << " " << perimeter_LP2 << endl;
 	}
+
+//	if (results == 0){
+//		cout <<argv[1] <<" "<<box_hc4.min_diam() << " " << perimeter_hc4 << " " << box_2nsimplex.min_diam() << " "
+//				<< perimeter_2nsimplex << " " << box_gauss.min_diam() << " " << perimeter_gauss <<
+//				" " << LP_1_simplex.min_diam() << " " << perimeter_LP1 << " " <<
+//				LP_2_simplex.min_diam() << " " << perimeter_LP2 << endl;
+//	}
 }
 
 

@@ -48,12 +48,12 @@ std::pair<IntervalVector, double> LoupFinderDefault::find(const IntervalVector& 
 		found=true;
 	} catch(NotFound&) { }
 
-	try {
-		// TODO
-		// in_x_taylor.set_inactive_ctr(entailed->norm_entailed);
-		p=finder_x_taylor.find(box,p.first,p.second,prop);
-		found=true;
-	} catch(NotFound&) { }
+//	try {
+//		// TODO
+//		// in_x_taylor.set_inactive_ctr(entailed->norm_entailed);
+//		p=finder_x_taylor.find(box,p.first,p.second,prop);
+//		found=true;
+//	} catch(NotFound&) { }
 
 	if (found) {
 		//--------------------------------------------------------------------------

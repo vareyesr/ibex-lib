@@ -13,6 +13,7 @@
 #include "ibex_NoBisectableVariableException.h"
 #include "ibex_BxpOptimData.h"
 #include "ibex_CovOptimData.h"
+#include "ibex_Conditioners.h"
 
 #include <float.h>
 #include <stdlib.h>
@@ -54,6 +55,7 @@ Optimizer::Optimizer(int n, Ctc& ctc, Bsc& bsc, LoupFinder& finder,
 										time(0), nb_cells(0), cov(NULL) {
 
 	if (trace) cout.precision(12);
+
 }
 
 
@@ -75,6 +77,16 @@ Optimizer::Optimizer(OptimizerConfig& config) :
 		uplo(NEG_INFINITY), uplo_of_epsboxes(POS_INFINITY), loup(POS_INFINITY),
 		loup_point(IntervalVector::empty(n)), initial_loup(POS_INFINITY), loup_changed(false),
 		time(0), nb_cells(0), cov(NULL) {
+
+	/*Construccion del sistema*/
+	IntervalVector caja(config.nb_var());
+	for (int i = 0 ; i < caja.size(); i++)
+		caja[i] = Interval(1,1);
+	A.push_back(config.get_system().active_ctrs_jacobian(caja));
+	IntervalVector bs(A[0].nb_rows());
+	for (int i = 0 ; i < bs.size() ; i++)
+		bs[i]=Interval(0,0);
+	b.push_back(bs);
 
 }
 
@@ -237,6 +249,42 @@ void Optimizer::contract_and_bound(Cell& c) {
 	ctc.contract(c.box, context);
 	//cout << c.prop << endl;
 	if (c.box.is_empty()) return;
+//
+	IntervalVector temp_box(n);
+	read_ext_box(c.box,temp_box);
+
+	if (nb_cells == 0){
+//		//GAUSS
+//		vector<IntervalMatrix> perm_list;
+//		vector <vector <pair <int,int> > > proj_vars;
+//		perm_list.clear(); proj_vars.clear();
+//		PA.clear(); Pb.clear();
+//		best_gauss_jordan_new (A[0],temp_box,perm_list,proj_vars,1e-7,2);
+//		PA.push_back(perm_list[0]*A[0]);
+//		Pb.push_back(perm_list[0]*b[0]);
+//		//LP1
+//		IntervalMatrix P_LP1 = best_P (A[0], temp_box, b.size(), 1e-8, 0);
+//		PA.push_back(P_LP1*A[0]);
+//		Pb.push_back(P_LP1*b[0]);
+//		//LP2
+		IntervalMatrix P_LP2a = best_P_bound (A[0], temp_box, b.size(), 1e-8, 0,0);
+		IntervalMatrix P_LP2b = best_P_bound (A[0], temp_box, b.size(), 1e-8, 0,1);
+		PA.push_back(P_LP2a*A[0]);
+		Pb.push_back(P_LP2a*b[0]);
+		PA.push_back(P_LP2b*A[0]);
+		Pb.push_back(P_LP2b*b[0]);
+	}
+//		cout << perm_list[0].mid() << endl << endl;
+
+
+	for (int i = 0 ; i < PA.size() ; i++)
+		bwd_mul(Pb[i], PA[i], temp_box, 1e-3);
+	write_ext_box(temp_box,c.box);
+	if (c.box.is_empty()) return;
+
+//	ctc.contract(c.box, context);
+//	//cout << c.prop << endl;
+//	if (c.box.is_empty()) return;
 
 	//cout << " [contract]  x after=" << c.box << endl;
 	//cout << " [contract]  y after=" << y << endl;
@@ -567,73 +615,73 @@ const char* white() {
 
 void Optimizer::report() {
 
-	if (!cov || !buffer.empty()) { // not started
-		cout << " not started." << endl;
-		return;
-	}
-
-	switch(status) {
-	case SUCCESS:
-		cout << green() << " optimization successful!" << endl;
-		break;
-	case INFEASIBLE:
-		cout << red() << " infeasible problem" << endl;
-		break;
-	case NO_FEASIBLE_FOUND:
-		cout << red() << " no feasible point found (the problem may be infeasible)" << endl;
-		break;
-	case UNBOUNDED_OBJ:
-		cout << red() << " possibly unbounded objective (f*=-oo)" << endl;
-		break;
-	case TIME_OUT:
-		cout << red() << " time limit " << timeout << "s. reached " << endl;
-		break;
-	case UNREACHED_PREC:
-		cout << red() << " unreached precision" << endl;
-		break;
-	}
-	cout << white() <<  endl;
+//	if (!cov || !buffer.empty()) { // not started
+//		cout << " not started." << endl;
+//		return;
+//	}
+	cout << time << " " << nb_cells << endl;
+//	switch(status) {
+//	case SUCCESS:
+//		cout << green() << " optimization successful!" << endl;
+//		break;
+//	case INFEASIBLE:
+//		cout << red() << " infeasible problem" << endl;
+//		break;
+//	case NO_FEASIBLE_FOUND:
+//		cout << red() << " no feasible point found (the problem may be infeasible)" << endl;
+//		break;
+//	case UNBOUNDED_OBJ:
+//		cout << red() << " possibly unbounded objective (f*=-oo)" << endl;
+//		break;
+//	case TIME_OUT:
+//		cout << red() << " time limit " << timeout << "s. reached " << endl;
+//		break;
+//	case UNREACHED_PREC:
+//		cout << red() << " unreached precision" << endl;
+//		break;
+//	}
+//	cout << white() <<  endl;
 
 	// No solution found and optimization stopped with empty buffer
 	// before the required precision is reached => means infeasible problem
-	if (status==INFEASIBLE) {
-		cout << " infeasible problem " << endl;
-	} else {
-		cout << " f* in\t[" << uplo << "," << loup << "]" << endl;
-		cout << "\t(best bound)" << endl << endl;
-
-		if (loup==initial_loup)
-			cout << " x* =\t--\n\t(no feasible point found)" << endl;
-		else {
-			if (loup_finder.rigorous())
-				cout << " x* in\t" << loup_point << endl;
-			else
-				cout << " x* =\t" << loup_point.lb() << endl;
-			cout << "\t(best feasible point)" << endl;
-		}
-		cout << endl;
-		double rel_prec=get_obj_rel_prec();
-		double abs_prec=get_obj_abs_prec();
-
-		cout << " relative precision on f*:\t" << rel_prec;
-		if (rel_prec <= rel_eps_f)
-			cout << green() << " [passed] " << white();
-		cout << endl;
-
-		cout << " absolute precision on f*:\t" << abs_prec;
-		if (abs_prec <= abs_eps_f)
-			cout << green() << " [passed] " << white();
-		cout << endl;
-	}
-
-	cout << " cpu time used:\t\t\t" << time << "s";
-	if (cov->time()!=time)
-		cout << " [total=" << cov->time() << "]";
-	cout << endl;
-	cout << " number of cells:\t\t" << nb_cells;
-	if (cov->nb_cells()!=nb_cells)
-		cout << " [total=" << cov->nb_cells() << "]";
-	cout << endl << endl;
+//	if (status==INFEASIBLE) {
+//		cout << " infeasible problem " << endl;
+//	} else {
+//		cout << " f* in\t[" << uplo << "," << loup << "]" << endl;
+//		cout << "\t(best bound)" << endl << endl;
+//
+//		if (loup==initial_loup)
+//			cout << " x* =\t--\n\t(no feasible point found)" << endl;
+//		else {
+//			if (loup_finder.rigorous())
+//				cout << " x* in\t" << loup_point << endl;
+//			else
+//				cout << " x* =\t" << loup_point.lb() << endl;
+//			cout << "\t(best feasible point)" << endl;
+//		}
+//		cout << endl;
+//		double rel_prec=get_obj_rel_prec();
+//		double abs_prec=get_obj_abs_prec();
+//
+//		cout << " relative precision on f*:\t" << rel_prec;
+//		if (rel_prec <= rel_eps_f)
+//			cout << green() << " [passed] " << white();
+//		cout << endl;
+//
+//		cout << " absolute precision on f*:\t" << abs_prec;
+//		if (abs_prec <= abs_eps_f)
+//			cout << green() << " [passed] " << white();
+//		cout << endl;
+//	}
+//
+//	cout << " cpu time used:\t\t\t" << time << "s";
+//	if (cov->time()!=time)
+//		cout << " [total=" << cov->time() << "]";
+//	cout << endl;
+//	cout << " number of cells:\t\t" << nb_cells;
+//	if (cov->nb_cells()!=nb_cells)
+//		cout << " [total=" << cov->nb_cells() << "]";
+//	cout << endl << endl;
 }
 
 

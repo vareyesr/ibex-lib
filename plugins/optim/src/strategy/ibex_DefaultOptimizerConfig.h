@@ -25,6 +25,7 @@ namespace ibex {
  * The contractor is HC4 + acid(HC4) + X-Newton and the bisector is LSmear.
  *
  */
+
 class DefaultOptimizerConfig : public OptimizerConfig, protected Memory {
 public:
 
@@ -126,8 +127,8 @@ public:
 	static constexpr double default_relax_ratio = 0.2;
 
 	/** Default ratio for choosing bisection point. */
-	static constexpr double default_bisect_ratio = 0.5;
-
+	static constexpr double default_bisect_ratio = 0.4;
+	const System& sys;
 protected:
 
 	// ============================================================================
@@ -140,6 +141,8 @@ protected:
 	virtual LoupFinder& get_loup_finder();
 
 	virtual CellBufferOptim& get_cell_buffer();
+
+	virtual const System& get_system();
 
 	virtual int goal_var();
 	// ============================================================================
@@ -156,7 +159,7 @@ protected:
 	 */
 	ExtendedSystem& get_ext_sys();
 
-	const System& sys;
+
 
 	double eps_h;
 	bool rigor;

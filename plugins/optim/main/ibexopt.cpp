@@ -277,11 +277,11 @@ int main(int argc, char** argv) {
 
 		o.get_data().save(output_cov_file.c_str());
 
-		if (!quiet) {
-			cout << " results written in " << output_cov_file << "\n";
-			if (overwitten)
-				cout << " (old file saved in " << cov_copy << ")\n";
-		}
+//		if (!quiet) {
+//			cout << " results written in " << output_cov_file << "\n";
+//			if (overwitten)
+//				cout << " (old file saved in " << cov_copy << ")\n";
+//		}
 
 		delete sys;
 

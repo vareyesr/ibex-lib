@@ -126,6 +126,8 @@ public:
 	/** see #set_trace(). */
 	int get_trace() const;
 
+	double get_system() const;
+
 	/** see #set_timeout(). */
 	double get_timeout() const;
 
@@ -174,6 +176,8 @@ protected:
 
 	virtual CellBufferOptim& get_cell_buffer()=0;
 
+	virtual const System& get_system()=0;
+
 	virtual int goal_var()=0;
 	// ============================================================================
 
@@ -194,6 +198,8 @@ inline OptimizerConfig::OptimizerConfig() {
 	timeout        = OptimizerConfig::default_timeout;
 	extended_COV   = OptimizerConfig::default_extended_cov;
 	anticipated_UB = OptimizerConfig::default_anticipated_UB;
+
+
 }
 
 inline void OptimizerConfig::set_rel_eps_f(double _rel_eps_f)     { rel_eps_f = _rel_eps_f; }
