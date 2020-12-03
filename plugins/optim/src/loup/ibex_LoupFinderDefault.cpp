@@ -20,7 +20,7 @@ namespace ibex {
 
 LoupFinderDefault::LoupFinderDefault(const System& sys, bool inHC4) :
 	finder_probing(inHC4? (LoupFinder&) *new LoupFinderInHC4(sys) : (LoupFinder&) *new LoupFinderFwdBwd(sys)),
-	finder_x_taylor(sys) {
+	finder_x_taylor(sys),finder_abs_taylor(sys) {
 
 }
 
@@ -52,6 +52,13 @@ std::pair<IntervalVector, double> LoupFinderDefault::find(const IntervalVector& 
 		// TODO
 		// in_x_taylor.set_inactive_ctr(entailed->norm_entailed);
 		p=finder_x_taylor.find(box,p.first,p.second,prop);
+		found=true;
+	} catch(NotFound&) { }
+
+	try {
+		// TODO
+		// in_x_taylor.set_inactive_ctr(entailed->norm_entailed);
+		p=finder_abs_taylor.find(box,p.first,p.second);
 		found=true;
 	} catch(NotFound&) { }
 

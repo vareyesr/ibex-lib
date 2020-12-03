@@ -13,6 +13,7 @@
 #include "ibex_LoupFinder.h"
 #include "ibex_System.h"
 #include "ibex_LoupFinderXTaylor.h"
+#include "ibex_LoupFinderAbsTaylor.h"
 
 namespace ibex {
 
@@ -82,6 +83,8 @@ public:
 	 * Loup finder using inner polytopes.
 	 */
 	LoupFinderXTaylor finder_x_taylor;
+
+	LoupFinderAbsTaylor finder_abs_taylor;
 };
 
 inline std::pair<IntervalVector, double> LoupFinderDefault::find(const IntervalVector& box, const IntervalVector& loup_point, double loup) {
