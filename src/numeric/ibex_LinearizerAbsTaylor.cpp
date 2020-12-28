@@ -27,10 +27,10 @@ class Unsatisfiability : public Exception { };
 
 }
 
-LinearizerAbsTaylor::LinearizerAbsTaylor(const System& _sys):
+LinearizerAbsTaylor::LinearizerAbsTaylor(const System& _sys, bool trace):
 			Linearizer(_sys.nb_var), sys(_sys),
 			m(sys.f_ctrs.image_dim()), goal_ctr(-1 /*tmp*/),
-			lp_solver(NULL), exp_point(0.0) {
+			lp_solver(NULL), exp_point(0.0),trace(trace) {
 
 	if (dynamic_cast<const ExtendedSystem*>(&sys)) {
 		((int&) goal_ctr)=((const ExtendedSystem&) sys).goal_ctr();

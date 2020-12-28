@@ -90,8 +90,7 @@ std::pair<IntervalVector, double> LoupFinderTrustRegion::find(const IntervalVect
 	 }
 
 LoupFinderTrustRegion::~LoupFinderTrustRegion() {
-	delete &finder_abs_taylor;
-	delete &finder_x_taylor;
+
 }
 
 } /* namespace ibex */

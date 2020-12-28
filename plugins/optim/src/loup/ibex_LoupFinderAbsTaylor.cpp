@@ -9,15 +9,18 @@
 
 
 #include "ibex_LoupFinderAbsTaylor.h"
+#include <stdio.h>
+#include <string>
 
 using namespace std;
 
 namespace ibex {
 
 //TODO: remove this recipe for the argument of the max number of iterations of the LP solver
-LoupFinderAbsTaylor::LoupFinderAbsTaylor(const System& sys) :
-		sys(sys), lp_solver(2*sys.nb_var) {
-		lr = new LinearizerAbsTaylor(sys);
+LoupFinderAbsTaylor::LoupFinderAbsTaylor(const System& sys,bool trace) :
+		sys(sys), lp_solver(2*sys.nb_var),trace(trace) {
+		lr = new LinearizerAbsTaylor(sys,trace);
+
 }
 
 std::pair<IntervalVector, double> LoupFinderAbsTaylor::find(const IntervalVector& box, const IntervalVector& exp_point, double current_loup) {
@@ -55,9 +58,10 @@ std::pair<IntervalVector, double> LoupFinderAbsTaylor::find(const IntervalVector
 		lp_solver.clear_constraints();
 		throw NotFound();
 	}
+	if (true)
+		lp_solver.write_to_file("sistema.txt");
 
 	LPSolver::Status stat = lp_solver.minimize();
-
 
 	if (stat == LPSolver::Status::Optimal) {
 
@@ -74,13 +78,16 @@ std::pair<IntervalVector, double> LoupFinderAbsTaylor::find(const IntervalVector
 		}
 
 		double new_loup=current_loup;
-
+		if (true){
+			cout <<"punto: " <<loup_point << endl << endl;
+			cout <<"costo:  " <<sys.goal_ub(loup_point) << endl << endl;
+		}
 		if (check(sys,loup_point,new_loup,false)) {
 			return std::make_pair(loup_point,new_loup);
 		}
 
 	}
-
+	if (!true)
 	throw NotFound();
 }
 

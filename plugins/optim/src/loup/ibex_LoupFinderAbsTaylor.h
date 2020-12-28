@@ -1,5 +1,5 @@
 /* ============================================================================
- * I B E X - AbsTaylor linear restriction
+ * I B E X - AbsTaylor linealization
  * ============================================================================
  *
  * Author(s)   : Ignacio Araya, Victor Reyes
@@ -20,11 +20,16 @@ class LoupFinderAbsTaylor : public LoupFinder {
 public:
 
 	/**
-	 * \brief Create the algorithm for a given system.
+	 * \ingroup optim
 	 *
-	 * \param sys         - The NLP problem.
+	 * \brief Upper-bounding algorithm based on AbsTaylor restriction.
+	 *
+	 * The algorithm builds an inner polytope inside the
+	 * current box by using a Taylor form with absolute values.
+	 * Then, it minimizes a linear approximation of the goal function
+	 * on this polytope via a LP solver.
 	 */
-	LoupFinderAbsTaylor(const System& sys);
+	LoupFinderAbsTaylor(const System& sys,bool trace = false);
 
 	/**
 	 * \brief Find a new loup in a given box.
@@ -42,7 +47,8 @@ protected:
 
 	/** Linearization technique. */
 	Linearizer* lr;
-
+	/** A trace of the linealization and the loup (if exists) founded by the technique**/
+	bool trace;
 	/** linear solver */
 	LPSolver lp_solver;
 

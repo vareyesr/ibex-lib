@@ -567,73 +567,74 @@ const char* white() {
 
 void Optimizer::report() {
 
-	if (!cov || !buffer.empty()) { // not started
-		cout << " not started." << endl;
-		return;
-	}
-
-	switch(status) {
-	case SUCCESS:
-		cout << green() << " optimization successful!" << endl;
-		break;
-	case INFEASIBLE:
-		cout << red() << " infeasible problem" << endl;
-		break;
-	case NO_FEASIBLE_FOUND:
-		cout << red() << " no feasible point found (the problem may be infeasible)" << endl;
-		break;
-	case UNBOUNDED_OBJ:
-		cout << red() << " possibly unbounded objective (f*=-oo)" << endl;
-		break;
-	case TIME_OUT:
-		cout << red() << " time limit " << timeout << "s. reached " << endl;
-		break;
-	case UNREACHED_PREC:
-		cout << red() << " unreached precision" << endl;
-		break;
-	}
-	cout << white() <<  endl;
-
-	// No solution found and optimization stopped with empty buffer
-	// before the required precision is reached => means infeasible problem
-	if (status==INFEASIBLE) {
-		cout << " infeasible problem " << endl;
-	} else {
-		cout << " f* in\t[" << uplo << "," << loup << "]" << endl;
-		cout << "\t(best bound)" << endl << endl;
-
-		if (loup==initial_loup)
-			cout << " x* =\t--\n\t(no feasible point found)" << endl;
-		else {
-			if (loup_finder.rigorous())
-				cout << " x* in\t" << loup_point << endl;
-			else
-				cout << " x* =\t" << loup_point.lb() << endl;
-			cout << "\t(best feasible point)" << endl;
-		}
-		cout << endl;
-		double rel_prec=get_obj_rel_prec();
-		double abs_prec=get_obj_abs_prec();
-
-		cout << " relative precision on f*:\t" << rel_prec;
-		if (rel_prec <= rel_eps_f)
-			cout << green() << " [passed] " << white();
-		cout << endl;
-
-		cout << " absolute precision on f*:\t" << abs_prec;
-		if (abs_prec <= abs_eps_f)
-			cout << green() << " [passed] " << white();
-		cout << endl;
-	}
-
-	cout << " cpu time used:\t\t\t" << time << "s";
-	if (cov->time()!=time)
-		cout << " [total=" << cov->time() << "]";
-	cout << endl;
-	cout << " number of cells:\t\t" << nb_cells;
-	if (cov->nb_cells()!=nb_cells)
-		cout << " [total=" << cov->nb_cells() << "]";
-	cout << endl << endl;
+	cout << nb_cells << " " << time << endl;
+//	if (!cov || !buffer.empty()) { // not started
+//		cout << " not started." << endl;
+//		return;
+//	}
+//
+//	switch(status) {
+//	case SUCCESS:
+//		cout << green() << " optimization successful!" << endl;
+//		break;
+//	case INFEASIBLE:
+//		cout << red() << " infeasible problem" << endl;
+//		break;
+//	case NO_FEASIBLE_FOUND:
+//		cout << red() << " no feasible point found (the problem may be infeasible)" << endl;
+//		break;
+//	case UNBOUNDED_OBJ:
+//		cout << red() << " possibly unbounded objective (f*=-oo)" << endl;
+//		break;
+//	case TIME_OUT:
+//		cout << red() << " time limit " << timeout << "s. reached " << endl;
+//		break;
+//	case UNREACHED_PREC:
+//		cout << red() << " unreached precision" << endl;
+//		break;
+//	}
+//	cout << white() <<  endl;
+//
+//	// No solution found and optimization stopped with empty buffer
+//	// before the required precision is reached => means infeasible problem
+//	if (status==INFEASIBLE) {
+//		cout << " infeasible problem " << endl;
+//	} else {
+//		cout << " f* in\t[" << uplo << "," << loup << "]" << endl;
+//		cout << "\t(best bound)" << endl << endl;
+//
+//		if (loup==initial_loup)
+//			cout << " x* =\t--\n\t(no feasible point found)" << endl;
+//		else {
+//			if (loup_finder.rigorous())
+//				cout << " x* in\t" << loup_point << endl;
+//			else
+//				cout << " x* =\t" << loup_point.lb() << endl;
+//			cout << "\t(best feasible point)" << endl;
+//		}
+//		cout << endl;
+//		double rel_prec=get_obj_rel_prec();
+//		double abs_prec=get_obj_abs_prec();
+//
+//		cout << " relative precision on f*:\t" << rel_prec;
+//		if (rel_prec <= rel_eps_f)
+//			cout << green() << " [passed] " << white();
+//		cout << endl;
+//
+//		cout << " absolute precision on f*:\t" << abs_prec;
+//		if (abs_prec <= abs_eps_f)
+//			cout << green() << " [passed] " << white();
+//		cout << endl;
+//	}
+//
+//	cout << " cpu time used:\t\t\t" << time << "s";
+//	if (cov->time()!=time)
+//		cout << " [total=" << cov->time() << "]";
+//	cout << endl;
+//	cout << " number of cells:\t\t" << nb_cells;
+//	if (cov->nb_cells()!=nb_cells)
+//		cout << " [total=" << cov->nb_cells() << "]";
+//	cout << endl << endl;
 }
 
 

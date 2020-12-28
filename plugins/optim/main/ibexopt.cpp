@@ -268,24 +268,23 @@ int main(int argc, char** argv) {
 			else
 				o.optimize(sys->box);
 
-		if (trace) cout << endl;
+//		if (trace) cout << endl;
 
 		// Report some information (computation time, etc.)
 
 		if (!quiet)
 			o.report();
 
-		o.get_data().save(output_cov_file.c_str());
+//		o.get_data().save(output_cov_file.c_str());
 
-		if (!quiet) {
-			cout << " results written in " << output_cov_file << "\n";
-			if (overwitten)
-				cout << " (old file saved in " << cov_copy << ")\n";
-		}
+//		if (!quiet) {
+//			cout << " results written in " << output_cov_file << "\n";
+//			if (overwitten)
+//				cout << " (old file saved in " << cov_copy << ")\n";
+//		}
 
-		delete sys;
-
-		return 0;
+//		delete sys;
+//		return 0;
 
 	}
 	catch(ibex::UnknownFileException& e) {

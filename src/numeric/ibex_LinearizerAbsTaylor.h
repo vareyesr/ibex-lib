@@ -31,7 +31,7 @@ public:
 	 *
 	 * \param sys The system
 	 */
-	LinearizerAbsTaylor(const System& sys);
+	LinearizerAbsTaylor(const System& sys, bool trace = false);
 
 	/**
 	 * \brief Deletes this.
@@ -85,7 +85,7 @@ private:
 	const int goal_ctr;
 
 	Vector exp_point;
-
+	bool trace;
 
 	/**
 	 * Current LP solver
