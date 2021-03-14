@@ -1,10 +1,13 @@
 /* ============================================================================
- * I B E X - AbsTaylor linear restriction
+ * I B E X - X-Taylor linear relaxation/restriction
  * ============================================================================
+ * Copyright   : IMT Atlantique (FRANCE)
+ * License     : This program can be distributed under the terms of the GNU LGPL.
+ *               See the file COPYING.LESSER.
  *
  * Author(s)   : Ignacio Araya, Victor Reyes
- * Created     : April 2018
- * Updated     : December 2020
+ * Created     : April 23th, 2018
+ * Updated     : April 23th, 2018
  * ---------------------------------------------------------------------------- */
 
 #include "ibex_LinearizerAbsTaylor.h"
@@ -27,10 +30,10 @@ class Unsatisfiability : public Exception { };
 
 }
 
-LinearizerAbsTaylor::LinearizerAbsTaylor(const System& _sys, bool trace):
+LinearizerAbsTaylor::LinearizerAbsTaylor(const System& _sys):
 			Linearizer(_sys.nb_var), sys(_sys),
 			m(sys.f_ctrs.image_dim()), goal_ctr(-1 /*tmp*/),
-			lp_solver(NULL), exp_point(0.0),trace(trace) {
+			lp_solver(NULL), exp_point(0.0) {
 
 	if (dynamic_cast<const ExtendedSystem*>(&sys)) {
 		((int&) goal_ctr)=((const ExtendedSystem&) sys).goal_ctr();
@@ -67,7 +70,6 @@ int LinearizerAbsTaylor::linear_restrict(const IntervalVector& box) {
 
 		// the evaluation of the constraints in the mid of the box
 		Vector point(exp_point);
-
 		IntervalVector g_mid(sys.f_ctrs.eval_vector(point,active));
 		if (g_mid.is_empty()) return -1;
 
@@ -121,8 +123,7 @@ int LinearizerAbsTaylor::linear_restrict(const IntervalVector& box) {
 int LinearizerAbsTaylor::linearize_leq_mid(const IntervalVector& box, const Vector& point, const IntervalVector& dg_box, const Interval& g_mid) {
 	Vector a(2*n); // vector of coefficients
 
-	// todo: check if it is still necessary
-//	if (dg_box.max_diam() > 1e6) {  // default limit box diam
+//	if (dg_box.max_diam() > lp_solver->default_limit_diam_box.ub()) {
 //		// we also also avoid this way to deal with infinite bounds (see below)
 //		throw LPException();
 //	}
@@ -143,7 +144,7 @@ int LinearizerAbsTaylor::linearize_leq_mid(const IntervalVector& box, const Vect
 	// =====================================================
     Vector aa=a;
 	aa.resize(box.size());
-	Interval rhs = -g_mid + aa*point - lp_solver->default_tolerance;
+	Interval rhs = -g_mid + aa*point - 1e-9;
 
 	double b = rhs.lb() ;
 
@@ -167,7 +168,7 @@ int LinearizerAbsTaylor::check_and_add_constraint(const IntervalVector& box, con
 		//cout << "add constraint " << a << "*x<=" << b << endl;
 		lp_solver->add_constraint(a, LEQ, b); // note: may throw LPException
 		return 1;
-
+	//}
 }
 
 } // end namespace
