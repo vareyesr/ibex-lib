@@ -12,7 +12,12 @@ Unlike the previous proposal, X-Taylor, the expansion point of the Taylor form i
 
 In order to apply the strategy the following steps must be follow:
 
-* Decompose the interval partial derivatives into two values: <a href="https://www.codecogs.com/eqnedit.php?latex=J_{ij}=c_{ij}&plus;\mathbf{d_{ij}}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?J_{ij}=c_{ij}&plus;\mathbf{d_{ij}}" title="J_{ij}=c_{ij}+\mathbf{d_{ij}}" /></a>, where the value c_{ij} 
+* Decompose the interval partial derivatives into two values: <a href="https://www.codecogs.com/eqnedit.php?latex=J_{ij}=c_{ij}&plus;\mathbf{d_{ij}}" target="_blank"><img src="https://latex.codecogs.com/svg.latex?J_{ij}=c_{ij}&plus;\mathbf{d_{ij}}" title="J_{ij}=c_{ij}+\mathbf{d_{ij}}" /></a>, where the value c_{ij} is the midpoint of the interval derivative.
+
+* Then, we propose the following Taylor-based inner linearization:
+<center>
+<a href="https://www.codecogs.com/eqnedit.php?latex=g_{j}\leq&space;h_{j}&space;=&space;g_{j}(x')&plus;\sum_{i}^{n}(c_{ij}\cdot&space;(x_{i}-x_{i}')&plus;|d_{ij}|\cdot&space;|x_{i}-x_{i}'|&space;)" target="_blank"><img src="https://latex.codecogs.com/svg.latex?g_{j}\leq&space;h_{j}&space;=&space;g_{j}(x')&plus;\sum_{i}^{n}(c_{ij}\cdot&space;(x_{i}-x_{i}')&plus;|d_{ij}|\cdot&space;|x_{i}-x_{i}'|&space;)" title="g_{j}\leq h_{j} = g_{j}(x')+\sum_{i}^{n}(c_{ij}\cdot (x_{i}-x_{i}')+|d_{ij}|\cdot |x_{i}-x_{i}'| )" /></a>	
+</center>
 
 
 # TrustRegions
