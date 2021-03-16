@@ -17,15 +17,15 @@ using namespace std;
 namespace ibex {
 
 //TODO: remove this recipe for the argument of the max number of iterations of the LP solver
-LoupFinderAbsTaylor::LoupFinderAbsTaylor(const System& sys,bool trace) :
-		sys(sys), lp_solver(2*sys.nb_var),trace(trace) {
-		lr = new LinearizerAbsTaylor(sys,trace);
-
+LoupFinderAbsTaylor::LoupFinderAbsTaylor(const System& sys) :
+		sys(sys), lp_solver(2*sys.nb_var) {
+		lr = new LinearizerAbsTaylor(sys);
 }
 
+
+
 std::pair<IntervalVector, double> LoupFinderAbsTaylor::find(const IntervalVector& box, const IntervalVector& exp_point, double current_loup) {
-//	if (!(lp_solver.default_limit_diam_box.contains(box.max_diam())))
-//		throw NotFound();
+
 	int n=sys.nb_var;
 	lp_solver.clear_constraints();
 
@@ -48,7 +48,6 @@ std::pair<IntervalVector, double> LoupFinderAbsTaylor::find(const IntervalVector
 	Vector g=ig.mid();
 
 	// set the objective coefficient
-	// TODO: replace with lp_solver.set_obj(g) when implemented
 	for (int j=0; j<n; j++)
 		lp_solver.set_cost(j,g[j]);
 
@@ -58,18 +57,15 @@ std::pair<IntervalVector, double> LoupFinderAbsTaylor::find(const IntervalVector
 		lp_solver.clear_constraints();
 		throw NotFound();
 	}
-	if (true)
-		lp_solver.write_to_file("sistema.txt");
 
 	LPSolver::Status stat = lp_solver.minimize();
 
 	if (stat == LPSolver::Status::Optimal) {
-
 		//the linear solution is mapped to intervals and evaluated
 		Vector loup_point = lp_solver.not_proved_primal_sol();
-		//cout << sys.f_ctrs.eval_vector(loup_point) << endl;
 
-		loup_point.resize(box.size() /*n*/);
+
+		loup_point.resize(box.size());
 
 		//correction
 		for(int i=0;i<box.size();i++){
@@ -78,16 +74,12 @@ std::pair<IntervalVector, double> LoupFinderAbsTaylor::find(const IntervalVector
 		}
 
 		double new_loup=current_loup;
-		if (true){
-			cout <<"punto: " <<loup_point << endl << endl;
-			cout <<"costo:  " <<sys.goal_ub(loup_point) << endl << endl;
-		}
+
 		if (check(sys,loup_point,new_loup,false)) {
 			return std::make_pair(loup_point,new_loup);
 		}
-
 	}
-	if (!true)
+
 	throw NotFound();
 }
 

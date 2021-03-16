@@ -29,7 +29,7 @@ public:
 	 * Then, it minimizes a linear approximation of the goal function
 	 * on this polytope via a LP solver.
 	 */
-	LoupFinderAbsTaylor(const System& sys,bool trace = false);
+	LoupFinderAbsTaylor(const System& sys);
 
 	/**
 	 * \brief Find a new loup in a given box.
@@ -43,14 +43,21 @@ public:
 	 */
 	const System& sys;
 
+	/** linear solver */
+	LPSolver lp_solver;
+
+
+private:
+	/**
+	 * \brief The expension point inside the current box. By default, the mid point is selected.
+	 */
+	IntervalVector exp_point;
+
 protected:
 
 	/** Linearization technique. */
 	Linearizer* lr;
-	/** A trace of the linealization and the loup (if exists) founded by the technique**/
-	bool trace;
-	/** linear solver */
-	LPSolver lp_solver;
+
 
 };
 

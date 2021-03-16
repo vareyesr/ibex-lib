@@ -1,0 +1,77 @@
+/**
+ *
+ * This main shows how the methods AbsTaylor or TrustRegion are performed.
+ *
+ * As output you can expect the inner linealizations, the feasible point and the evaluation.
+ */
+
+#include "ibex.h"
+
+using namespace std;
+using namespace ibex;
+
+
+
+int main(int argc, char** argv) {
+
+	System *sys;
+	sys = new System(argv[1]);
+
+	LoupFinderAbsTaylor abst(*sys);
+	LoupFinderIterative trust(*sys,sys->box);
+
+	IntervalVector point(sys->box.mid());
+
+	int option;
+
+	cout << "Original System:" << endl;
+	cout << *sys << endl << endl;
+	cout << "Select the linearization technique: " << endl;
+	cout << "0 for AbsTaylor, 1 for TrustRegion " << endl;
+	cin >> option;
+	pair<IntervalVector,double> p;
+
+
+	int point_choose;
+	cout << "What expansion point do you want to use?" << endl;
+	cout << "0 for the mid point, 1: for user point." <<endl;
+	cout << "Note that the point must be inside the box" << endl;
+	cin >> point_choose ;
+	if (point_choose==1){
+		for (int i = 0 ; i < sys->nb_var ; i++){
+			double value_var;
+			cout << "Enter the value for the " << i << " variable: ";
+			cin >> value_var;cout << endl;
+			point[i] = value_var;
+		}
+
+	}
+
+	if (option == 0){
+		try {
+			cout << "The linealization is the following:" << endl;
+			p = abst.find(sys->box,point,POS_INFINITY);
+			abst.lp_solver.write_to_file("system.txt");
+			std::ifstream f("system.txt");
+				if (f.is_open())
+					std::cout << f.rdbuf();
+			f.close();
+			cout << "The point :    ";
+			cout << p.first.ub() << endl;
+			cout << "corresponds to an upperbound of the problem with a cost of ";
+			cout << p.second << endl << endl;
+
+		} catch(int e) {cout << "Upperbound not found"<<endl; }
+	}
+	else{
+		try {
+			p = trust.find(sys->box,point,POS_INFINITY);
+			cout << "The point :    ";
+			cout << p.first.ub() << endl;
+			cout << "corresponds to an upperbound of the problem with a cost of ";
+			cout << p.second << endl << endl;
+
+		} catch(int e) {cout << "Upperbound not found"<<endl; }
+	}
+
+}
