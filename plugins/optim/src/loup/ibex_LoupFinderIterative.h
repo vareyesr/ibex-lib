@@ -1,5 +1,5 @@
-#ifndef __IBEX_LOUP_FINDER_TRUST_REGION_H__
-#define __IBEX_LOUP_FINDER_TRUST_REGION_H__
+#ifndef __IBEX_LOUP_FINDER_ITERATIVE_H__
+#define __IBEX_LOUP_FINDER_ITERATIVE_H__
 
 #include "ibex_LoupFinder.h"
 #include "ibex_System.h"
@@ -9,13 +9,17 @@
 
 namespace ibex {
 
-class LoupFinderTrustRegion : public LoupFinder {
+class LoupFinderIterative : public LoupFinder {
 
 public:
+
+
+	typedef enum  { XT, ABST, BOTH } loup_finders;
+
 	/**
 	 * \ingroup optim
 	 *
-	 * \brief A trust region algorithm based on XTaylor and/or AbsTaylor.
+	 * \brief An iterative algorithm based on XTaylor and/or AbsTaylor.
 	 *
 	 * The algorithm builds an inner (feasible) polytope inside the
 	 * current box by using either AbsTaylor or XTaylor; and then minimizes a
@@ -23,21 +27,21 @@ public:
 	 * a LP solver. If the algorithm success, then it construct a new box (inside the
 	 * search space), continuing the search of better upperbounds.
 	 */
-
-	LoupFinderTrustRegion(const System& sys, const IntervalVector& initial_box,double alpha);
+	LoupFinderIterative(const System& sys, const IntervalVector& initial_box,double alpha=0.9,loup_finders lfinders=BOTH);
 
 	/**
 	 * \brief Delete this.
 	 */
-	virtual ~LoupFinderTrustRegion();
+	virtual ~LoupFinderIterative();
 
 	/**
 	 * \brief Find a new loup in a given box and the neighborhood by using
-	 * XTaylor and/or AbsTaylor
+	 * a LoupFinder (e.g. AbsTaylor/XTaylor).
 	 */
 	virtual std::pair<IntervalVector, double> find(const IntervalVector& box, const IntervalVector& loup_point, double loup);
-
+	const System& sys;
 private:
+
 	/**LoupFinder AbsTaylor (if needed)**/
 	LoupFinderAbsTaylor finder_abs_taylor;
 	/**LoupFinder XTaylor (if needed)**/
@@ -48,9 +52,11 @@ private:
 	const Function* f_goal;
 	/**User parameter for convergence purposes**/
 	double alpha;
+	/*the loupfinder to be used*/
+	loup_finders lfinders;
 
 };
 
 } /* namespace ibex */
 
-#endif /* __IBEX_LOUP_FINDER_DEFAULT_H__ */
+#endif /* __IBEX_LOUP_FINDER_ITERATIVE_H__ */
