@@ -66,6 +66,7 @@ std::pair<IntervalVector, double> LoupFinderIterative::find(const IntervalVector
 					box_aux[i] = Interval(initial_box[i].lb(),initial_box[i].ub());
 	 		}
 		 	old_ub = p;
+
 		 	if ((lfinders == BOTH) || (lfinders == ABST)){
 				try {
 					new_ub=finder_abs_taylor.find(box_aux,p.first.mid(),p.second);

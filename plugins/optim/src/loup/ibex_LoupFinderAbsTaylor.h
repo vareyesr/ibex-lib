@@ -1,5 +1,5 @@
 /* ============================================================================
- * I B E X - AbsTaylor linealization
+ * I B E X - AbsTaylor loup finder
  * ============================================================================
  *
  * Author(s)   : Ignacio Araya, Victor Reyes

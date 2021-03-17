@@ -45,9 +45,6 @@ LinearizerAbsTaylor::~LinearizerAbsTaylor() {
 
 }
 
-
-
-
 int LinearizerAbsTaylor::linearize(const IntervalVector& box, LPSolver& _lp_solver)  {
 	lp_solver = &_lp_solver;
 
@@ -66,7 +63,6 @@ int LinearizerAbsTaylor::linear_restrict(const IntervalVector& box) {
 		//IntervalMatrix J=sys.active_ctrs_jacobian(box);  // --> better with SystemBox
 
 		if (J.is_empty()) return -1; // note: no way to inform that the box is actually infeasible
-
 
 		// the evaluation of the constraints in the mid of the box
 		Vector point(exp_point);
@@ -123,11 +119,6 @@ int LinearizerAbsTaylor::linear_restrict(const IntervalVector& box) {
 int LinearizerAbsTaylor::linearize_leq_mid(const IntervalVector& box, const Vector& point, const IntervalVector& dg_box, const Interval& g_mid) {
 	Vector a(2*n); // vector of coefficients
 
-//	if (dg_box.max_diam() > lp_solver->default_limit_diam_box.ub()) {
-//		// we also also avoid this way to deal with infinite bounds (see below)
-//		throw LPException();
-//	}
-
 	// ========= compute matrix of coefficients ===========
 	// Fix each coefficient to the lower/upper bound of the
 	// constraint gradient, depending on the position of the
@@ -154,18 +145,6 @@ int LinearizerAbsTaylor::linearize_leq_mid(const IntervalVector& box, const Vect
 
 int LinearizerAbsTaylor::check_and_add_constraint(const IntervalVector& box, const Vector& a, double b) {
 
-	//Interval ax=a*box; // for fast (in)feasibility check
-
-	// ======= Quick (in)feasibility checks
-	//                 a*[x] <= rhs ?
-/*	if (ax.lb()>b){
-		// the constraint is not satisfied
-		throw Unsatisfiability();
-	}else if (ax.ub()<=b) {
-		// the (linear) constraint is satisfied for any point in the box
-		return 0;
-	} else {*/
-		//cout << "add constraint " << a << "*x<=" << b << endl;
 		lp_solver->add_constraint(a, LEQ, b); // note: may throw LPException
 		return 1;
 	//}

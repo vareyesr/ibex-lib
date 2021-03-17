@@ -1,13 +1,10 @@
 /* ============================================================================
- * I B E X - AbsTaylor linear restriction
+ * I B E X - AbsTaylor linearizer
  * ============================================================================
- * Copyright   : IMT Atlantique (FRANCE)
- * License     : This program can be distributed under the terms of the GNU LGPL.
- *               See the file COPYING.LESSER.
  *
  * Author(s)   : Ignacio Araya, Victor Reyes
- * Created     : April 23th, 2018
- * Updated     : April 23th, 2018
+ * Created     : April 2018
+ * Updated     : December 2020
  * ---------------------------------------------------------------------------- */
 
 #ifndef __IBEX_LINEARIZER_ABS_TAYLOR__
@@ -45,7 +42,9 @@ public:
 	 * \brief Generation of the linear inequalities
 	 */
 	virtual int linearize(const IntervalVector& box, LPSolver& lp_solver);
-
+	/**
+	 * \brief Sets the expansion point for the abstaylor linearization
+	 */
 	void set_expansion_point(Vector point){ exp_point=point; }
 
 private:
@@ -82,7 +81,9 @@ private:
 	 * \brief Goal constraint (in case of extended system, -1 otherwise).
 	 */
 	const int goal_ctr;
-
+	/**
+	 * \brief The expansion point
+	 */
 	Vector exp_point;
 
 
