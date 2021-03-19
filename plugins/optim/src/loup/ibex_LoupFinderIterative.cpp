@@ -7,8 +7,8 @@ using namespace std;
 namespace ibex {
 
 
-LoupFinderIterative::LoupFinderIterative(const System& sys,const IntervalVector& initial_box,double alpha,loup_finders lfinders) :
-	finder_abs_taylor(sys),finder_x_taylor(sys),initial_box(initial_box),f_goal(sys.goal),alpha(alpha),sys(sys),lfinders(lfinders) {
+LoupFinderIterative::LoupFinderIterative(const System& sys,const IntervalVector& initial_box,double alpha,loup_finders lfinders, int max_iter) :
+	finder_abs_taylor(sys),finder_x_taylor(sys),initial_box(initial_box),f_goal(sys.goal),alpha(alpha),sys(sys),lfinders(lfinders),max_iter(max_iter) {
 
 }
 
@@ -49,6 +49,7 @@ std::pair<IntervalVector, double> LoupFinderIterative::find(const IntervalVector
 		}
 	 	IntervalVector box_aux(box.size());
 	 	box_aux = box;
+	 	int nb_iter = 0;
 	 	while ((old_ub.second-p.second > 1e-6) || (flag)){
 	 		if (old_ub.second-p.second < 1e-6) flag = false;
 	 		else flag = true;
@@ -84,6 +85,10 @@ std::pair<IntervalVector, double> LoupFinderIterative::find(const IntervalVector
 
 				} catch(NotFound&) {}
 		 	}
+		 	nb_iter++;
+		 	if (nb_iter >= max_iter)
+		 		break;
+
 	 	}
 	 	if (found){
 	 		return p;

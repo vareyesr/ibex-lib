@@ -58,12 +58,41 @@ can be any point inside the box x, and <img src="https://i.upmath.me/svg/%7Cd_%7
     g_{2}\leq&amp; -x_{1}+x_{2}+|x_{2}-0.5|-1.25 &amp;\leq 0\\
 \end{eqnarray*}
 " /></p>
+<p><img src="https://i.imgur.com/hmgCEze.jpg" alt="test"></p>
+<h2>How to use it?</h2>
+<p>First of all, the following object must be created:</p>
+<pre><code class="language-cpp">LoupFinderAbsTaylor abst(*sys);
+</code></pre>
+<p>where sys represents the System to solve. Once this object is created,
+we just use:</p>
+<pre><code class="language-cpp">abst.find(box,point,old_value);
+</code></pre>
+<p>where:</p>
+<ul>
+<li>box corresponds to the current space where the search is perform.</li>
+<li>point is the expansion point (for instance the mid point).</li>
+<li>old_value the current best upper bound found so far. If not upperbound has been found, then it should be set to POS_INFINITY.</li>
+</ul>
 <h1>IterativeTaylor</h1>
 <p>IterativeTaylor is a simple iterative method for finding promising feasible solutions in a box <img src="https://i.upmath.me/svg/%7B%5Cbf%20x%7D" alt="{\bf x}" />.</p>
 <p>Starting from an initial point <img src="https://i.upmath.me/svg/x_p" alt="x_p" /> (e.g., the midpoint
 of the box <img src="https://i.upmath.me/svg/%7B%5Cbf%20x%7D" alt="{\bf x}" />), IterativeTaylor first attempts to find a candidate feasible solution <img src="https://i.upmath.me/svg/x_c" alt="x_c" /> in <img src="https://i.upmath.me/svg/%7B%5Cbf%20x%7D" alt="{\bf x}" /> by using
 any LoupFinder (such as AbsTaylor or XTaylor) with <img src="https://i.upmath.me/svg/x_c" alt="x_c" /> as the expansion point of the linearization.</p>
-<p>If it is successful, then the algorithm performs a loop while the candidate solution is improved. In each iteration, the size of <img src="https://i.upmath.me/svg/%7B%5Cbf%20x%7D" alt="{\bf x}" /> is reduced and a new feasible solution <img src="https://i.upmath.me/svg/x_c" alt="x_c" /> is searched in the new box by applying a linearization technique (or a set of linearization) and the simplex method.</p>
+<p>If it is successful, then the algorithm performs a loop while the candidate solution is improved. In each iteration, the size of <img src="https://i.upmath.me/svg/%7B%5Cbf%20x%7D" alt="{\bf x}" /> is reduced and a new feasible solution <img src="https://i.upmath.me/svg/x_c" alt="x_c" /> is searched in the new box by applying a linealization technique (or a set of linealization) and the simplex method.</p>
+<h2>How to use it?</h2>
+<p>First of all, the following object must be created:</p>
+<pre><code class="language-cpp">LoupFinderIterative iter(*sys,sys-&gt;box,alpha,lfinders,max_iter);
+</code></pre>
+<p>where:</p>
+<ul>
+<li>sys represents the System to solve.</li>
+<li>sys-&gt;box the initial search space.</li>
+<li>alpha an user-parameter that is used to reduce the box.</li>
+<li>lfinders the set of loupfinders. Can be either XT, ABST or BOTH.</li>
+<li>max_iter maximum number of iterations.</li>
+</ul>
+<p>Once this object is created, we use the same function as before:</p>
+<pre><code class="language-cpp">iter.find(box,point,old_value);
+</code></pre>
 <h3>Authors: Victor Reyes and Ignacio Araya</h3>
 <h5>For citing use the paper: Reyes, V., &amp; Araya, I. (2020). AbsTaylor: upper bounding with inner regions in nonlinear continuous global optimization problems. Journal of Global Optimization, 1-17.</h5>
-

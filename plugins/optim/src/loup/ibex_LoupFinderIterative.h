@@ -27,7 +27,7 @@ public:
 	 * a LP solver. If the algorithm success, then it construct a new box (inside the
 	 * search space), continuing the search of better upperbounds.
 	 */
-	LoupFinderIterative(const System& sys, const IntervalVector& initial_box,double alpha=0.9,loup_finders lfinders=BOTH);
+	LoupFinderIterative(const System& sys, const IntervalVector& initial_box,double alpha=0.9,loup_finders lfinders=BOTH,int max_iter=10);
 
 	/**
 	 * \brief Delete this.
@@ -54,6 +54,8 @@ private:
 	double alpha;
 	/*the loupfinder to be used*/
 	loup_finders lfinders;
+	/*maximum number of iterations*/
+	int max_iter;
 
 };
 
