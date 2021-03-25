@@ -7,9 +7,9 @@ using namespace std;
 namespace ibex {
 
 
-LoupFinderIterative::LoupFinderIterative(const System& sys,const IntervalVector& initial_box,double alpha,loup_finders lfinders, int max_iter) :
-	finder_abs_taylor(sys),finder_x_taylor(sys),initial_box(initial_box),f_goal(sys.goal),alpha(alpha),sys(sys),lfinders(lfinders),max_iter(max_iter) {
-
+LoupFinderIterative::LoupFinderIterative(const System& sys,const IntervalVector& initial_box,double alpha,loup_finders lfinders, int max_iter,double prec) :
+	finder_abs_taylor(sys),finder_x_taylor(sys),initial_box(initial_box),alpha(alpha),sys(sys),lfinders(lfinders),max_iter(max_iter),prec(prec) {
+	trace = false;
 }
 
 std::pair<IntervalVector, double> LoupFinderIterative::find(const IntervalVector& box, const IntervalVector& old_loup_point, double old_loup) {
@@ -23,79 +23,90 @@ std::pair<IntervalVector, double> LoupFinderIterative::find(const IntervalVector
 
 
 
- 		if ((lfinders == BOTH) || (lfinders == ABST)){
-			try{
-				pair<IntervalVector,double> new_ub=finder_abs_taylor.find(box,box.mid(),p.second);
-				if(new_ub.second < p.second){
-					found = true;
-					p = new_ub;
-				}
-				else throw NotFound();
-			} catch(NotFound&) { }
- 		}
- 		if ((lfinders == BOTH) || (lfinders == XT)){
-			try{
-				pair<IntervalVector,double> new_ub=finder_x_taylor.find(box,box.mid(),p.second);
-				if(new_ub.second < p.second){
-					found = true;
-					p = new_ub;
-				}
-				else throw NotFound();
-			} catch(NotFound&) { }
- 		}
+	if ((lfinders == BOTH) || (lfinders == ABST)){
+		try{
+			pair<IntervalVector,double> new_ub=finder_abs_taylor.find(box,box.mid(),p.second);
+			if(new_ub.second < p.second){
+				found = true;
+				p = new_ub;
+				if (trace) print_ub(p);
+			}
+			else throw NotFound();
+		} catch(NotFound&) { }
+	}
+	if ((lfinders == BOTH) || (lfinders == XT)){
+		try{
+			pair<IntervalVector,double> new_ub=finder_x_taylor.find(box,box.mid(),p.second);
+			if(new_ub.second < p.second){
+				found = true;
+				p = new_ub;
+				if (trace) print_ub(p);
+			}
+			else throw NotFound();
+		} catch(NotFound&) { }
+	}
 
-		if (!found){
-			throw NotFound();
+	if (!found){
+		throw NotFound();
+	}
+	IntervalVector box_aux(box.size());
+	box_aux = box;
+	int nb_iter = 0;
+	while ((old_ub.second-p.second > prec) || (flag)){
+		if (old_ub.second-p.second < prec) flag = false;
+		else flag = true;
+
+		Vector old_exp = p.first.mid();
+		for (int i = 0 ; i < box.size() ; i++){
+
+			if ((old_exp[i]-(alpha)*box_aux[i].diam()/2>=initial_box[i].lb()) && (old_exp[i]+(alpha)*box_aux[i].diam()/2<=initial_box[i].ub()))
+				box_aux[i] = Interval(old_exp[i]-(alpha)*box_aux[i].diam()/2,old_exp[i]+(alpha)*box_aux[i].diam()/2);
+			else if ((old_exp[i]-(alpha)*box_aux[i].diam()/2>=initial_box[i].lb()) && (old_exp[i]+(alpha)*box_aux[i].diam()/2>initial_box[i].ub()))
+				box_aux[i] = Interval(old_exp[i]-(alpha)*box_aux[i].diam()/2,initial_box[i].ub());
+			else if ((old_exp[i]-(alpha)*box_aux[i].diam()/2<initial_box[i].lb()) && (old_exp[i]+(alpha)*box_aux[i].diam()/2<=initial_box[i].ub()))
+				box_aux[i] = Interval(initial_box[i].lb(),old_exp[i]+(alpha)*box_aux[i].diam()/2);
+			else if ((old_exp[i]-alpha*box_aux[i].diam()/2<initial_box[i].lb()) && (old_exp[i]+alpha*box_aux[i].diam()/2>initial_box[i].ub()))
+				box_aux[i] = Interval(initial_box[i].lb(),initial_box[i].ub());
 		}
-	 	IntervalVector box_aux(box.size());
-	 	box_aux = box;
-	 	int nb_iter = 0;
-	 	while ((old_ub.second-p.second > 1e-6) || (flag)){
-	 		if (old_ub.second-p.second < 1e-6) flag = false;
-	 		else flag = true;
+		old_ub = p;
 
-	 		Vector old_exp = p.first.mid();
-	 		for (int i = 0 ; i < box.size() ; i++){
+		if ((lfinders == BOTH) || (lfinders == ABST)){
+			try {
+				new_ub=finder_abs_taylor.find(box_aux,p.first.mid(),p.second);
+				if(new_ub.second < p.second){
+					p = new_ub;
+					if (trace) print_ub(p);
+				}
+			} catch(NotFound&) {}
+		}
+		if ((lfinders == BOTH) || (lfinders == XT)){
+			try {
+				new_ub=finder_x_taylor.find(box_aux,p.first.mid(),p.second);
+				if(new_ub.second < p.second){
+					p = new_ub;
+					if (trace) print_ub(p);
+				}
 
-				if ((old_exp[i]-(alpha)*box_aux[i].diam()/2>=initial_box[i].lb()) && (old_exp[i]+(alpha)*box_aux[i].diam()/2<=initial_box[i].ub()))
-					box_aux[i] = Interval(old_exp[i]-(alpha)*box_aux[i].diam()/2,old_exp[i]+(alpha)*box_aux[i].diam()/2);
-				else if ((old_exp[i]-(alpha)*box_aux[i].diam()/2>=initial_box[i].lb()) && (old_exp[i]+(alpha)*box_aux[i].diam()/2>initial_box[i].ub()))
-					box_aux[i] = Interval(old_exp[i]-(alpha)*box_aux[i].diam()/2,initial_box[i].ub());
-				else if ((old_exp[i]-(alpha)*box_aux[i].diam()/2<initial_box[i].lb()) && (old_exp[i]+(alpha)*box_aux[i].diam()/2<=initial_box[i].ub()))
-					box_aux[i] = Interval(initial_box[i].lb(),old_exp[i]+(alpha)*box_aux[i].diam()/2);
-				else if ((old_exp[i]-alpha*box_aux[i].diam()/2<initial_box[i].lb()) && (old_exp[i]+alpha*box_aux[i].diam()/2>initial_box[i].ub()))
-					box_aux[i] = Interval(initial_box[i].lb(),initial_box[i].ub());
-	 		}
-		 	old_ub = p;
+			} catch(NotFound&) {}
+		}
+		nb_iter++;
+		if (nb_iter >= max_iter)
+			break;
 
-		 	if ((lfinders == BOTH) || (lfinders == ABST)){
-				try {
-					new_ub=finder_abs_taylor.find(box_aux,p.first.mid(),p.second);
-					if(new_ub.second < p.second){
-						p = new_ub;
-					}
-				} catch(NotFound&) {}
-		 	}
-		 	if ((lfinders == BOTH) || (lfinders == XT)){
-				try {
-					new_ub=finder_x_taylor.find(box_aux,p.first.mid(),p.second);
-					if(new_ub.second < p.second){
-						p = new_ub;
-					}
+	}
+	if (found){
+		return p;
+	}
+	else
+		throw NotFound();
+}
 
-				} catch(NotFound&) {}
-		 	}
-		 	nb_iter++;
-		 	if (nb_iter >= max_iter)
-		 		break;
-
-	 	}
-	 	if (found){
-	 		return p;
-	 	}
-	 	else
-	 		throw NotFound();
-	 }
+void LoupFinderIterative::print_ub(std::pair<IntervalVector,double> p){
+	cout << "The point :    ";
+	cout << p.first.ub() << endl;
+	cout << "corresponds to an upperbound of the problem with a cost of ";
+	cout << p.second << endl << endl;
+}
 
 LoupFinderIterative::~LoupFinderIterative() {
 

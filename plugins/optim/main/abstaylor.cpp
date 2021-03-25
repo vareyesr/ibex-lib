@@ -14,6 +14,10 @@ using namespace ibex;
 
 int main(int argc, char** argv) {
 
+	if (argc < 2){
+		cout << "Use the format: ./abstaylor FILE, where FILE is the path to the file with minibex format" << endl;
+		return 0;
+	}
 	System *sys;
 	sys = new System(argv[1]);
 
@@ -65,12 +69,8 @@ int main(int argc, char** argv) {
 	}
 	else{
 		try {
-			p = trust.find(sys->box,point,POS_INFINITY);
-			cout << "The point :    ";
-			cout << p.first.ub() << endl;
-			cout << "corresponds to an upperbound of the problem with a cost of ";
-			cout << p.second << endl << endl;
-
+			trust.set_trace(true);
+			trust.find(sys->box,point,POS_INFINITY);
 		} catch(int e) {cout << "Upperbound not found"<<endl; }
 	}
 
