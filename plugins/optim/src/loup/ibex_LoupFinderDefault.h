@@ -14,7 +14,7 @@
 #include "ibex_System.h"
 #include "ibex_LoupFinderXTaylor.h"
 #include "ibex_LoupFinderAbsTaylor.h"
-#include "ibex_LoupFinderTrustRegion.h"
+#include "ibex_LoupFinderIterative.h"
 
 namespace ibex {
 
@@ -87,7 +87,7 @@ public:
 
 	LoupFinderAbsTaylor finder_abs_taylor;
 
-	LoupFinderTrustRegion finder_trust;
+	LoupFinderIterative finder_trust;
 };
 
 inline std::pair<IntervalVector, double> LoupFinderDefault::find(const IntervalVector& box, const IntervalVector& loup_point, double loup) {

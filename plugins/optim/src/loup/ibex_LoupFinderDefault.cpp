@@ -20,7 +20,7 @@ namespace ibex {
 
 LoupFinderDefault::LoupFinderDefault(const System& sys, bool inHC4) :
 	finder_probing(inHC4? (LoupFinder&) *new LoupFinderInHC4(sys) : (LoupFinder&) *new LoupFinderFwdBwd(sys)),
-	finder_x_taylor(sys),finder_abs_taylor(sys),finder_trust(sys,sys.box,0.5) {
+	finder_x_taylor(sys),finder_abs_taylor(sys),finder_trust(sys,sys.box,0.9,LoupFinderIterative::BOTH,10) {
 
 }
 
@@ -48,27 +48,26 @@ std::pair<IntervalVector, double> LoupFinderDefault::find(const IntervalVector& 
 		found=true;
 	} catch(NotFound&) { }
 
-	try {
-			// TODO
-			// in_x_taylor.set_inactive_ctr(entailed->norm_entailed);
-			p=finder_abs_taylor.find(box,p.first,p.second);
-			found=true;
-		} catch(NotFound&) { }
-
 //	try {
 //			// TODO
 //			// in_x_taylor.set_inactive_ctr(entailed->norm_entailed);
-//			p=finder_abs_taylor.find(box,p.first,p.second);
+//			p=finder_abs_taylor.find(box,box.mid(),p.second);
 //			found=true;
 //		} catch(NotFound&) { }
 
 //	try {
 //		// TODO
 //		// in_x_taylor.set_inactive_ctr(entailed->norm_entailed);
-//		p=finder_x_taylor.find(box,p.first,p.second,prop);
+//		p=finder_trust.find(box,p.first,p.second);
 //		found=true;
 //	} catch(NotFound&) { }
 
+	try {
+		// TODO
+		// in_x_taylor.set_inactive_ctr(entailed->norm_entailed);
+		p=finder_x_taylor.find(box,p.first,p.second,prop);
+		found=true;
+	} catch(NotFound&) { }
 
 
 	if (found) {
@@ -88,6 +87,12 @@ std::pair<IntervalVector, double> LoupFinderDefault::find(const IntervalVector& 
 		return p;
 	} else
 		throw NotFound();
+
+//	if (found){
+//		return p;
+//	}
+//	else
+//		throw NotFound();
 }
 
 LoupFinderDefault::~LoupFinderDefault() {
