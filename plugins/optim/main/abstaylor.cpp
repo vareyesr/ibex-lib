@@ -9,49 +9,50 @@
 
 using namespace std;
 using namespace ibex;
+#include <random>
 
+float get_random(double low,double high)
+{
+	std::random_device rd;
+    std::default_random_engine e(rd());
+    std::uniform_real_distribution<> dis(low, high); // rage 0 - 1
 
+    return dis(e);
+}
 
 int main(int argc, char** argv) {
 
-	if (argc < 2){
-		cout << "Use the format: ./abstaylor FILE, where FILE is the path to the file with minibex format" << endl;
+	if (argc < 4){
+		cout << "Use the format: ./abstaylor FILE [abst|iterative] [mid|rnd]" << endl;
 		return 0;
 	}
 	System *sys;
+	pair<IntervalVector,double> p;
 	sys = new System(argv[1]);
-
+	string loup_finder = argv[2];
+	string exp_point= argv[3];
 	LoupFinderAbsTaylor abst(*sys);
 	LoupFinderIterative trust(*sys,sys->box);
 
-	IntervalVector point(sys->box.mid());
+	IntervalVector point(sys->box.size());
 
-	int option;
-
-	cout << "Original System:" << endl;
-	cout << *sys << endl << endl;
-	cout << "Select the linearization technique: " << endl;
-	cout << "0 for AbsTaylor, 1 for TrustRegion " << endl;
-	cin >> option;
-	pair<IntervalVector,double> p;
-
-
-	int point_choose;
-	cout << "What expansion point do you want to use?" << endl;
-	cout << "0 for the mid point, 1: for user point." <<endl;
-	cout << "Note that the point must be inside the box" << endl;
-	cin >> point_choose ;
-	if (point_choose==1){
-		for (int i = 0 ; i < sys->nb_var ; i++){
-			double value_var;
-			cout << "Enter the value for the " << i << " variable: ";
-			cin >> value_var;cout << endl;
-			point[i] = value_var;
+	if (exp_point == "mid")
+		point= sys->box.mid();
+	else if (exp_point == "rnd"){
+		for (int i = 0 ; i < sys->box.size() ; i++){
+			point[i] = get_random(sys->box[i].lb(),sys->box[i].ub());
 		}
-
 	}
+	else{
+		cout << "Use either mid for the midpoint or rnd for a random point inside the box" << endl;
+		exit(1);
+	}
+	cout << endl<<"The search of upperbounds will be performed in the box : "<< sys->box << endl<<endl;
+	cout << "The expansion point is: " << point.mid() << endl<<endl;
+	cout << "Press a key to continue"<< endl;
+	string aux; cin >> aux;
 
-	if (option == 0){
+	if (loup_finder == "abst"){
 		try {
 			cout << "The linealization is the following:" << endl;
 			p = abst.find(sys->box,point,POS_INFINITY);
@@ -67,11 +68,15 @@ int main(int argc, char** argv) {
 
 		} catch(int e) {cout << "Upperbound not found"<<endl; }
 	}
-	else{
+	else if (loup_finder == "iterative"){
 		try {
 			trust.set_trace(true);
 			trust.find(sys->box,point,POS_INFINITY);
 		} catch(int e) {cout << "Upperbound not found"<<endl; }
+	}
+	else{
+		cout << "Method not found!" << endl;
+		exit(1);
 	}
 
 }

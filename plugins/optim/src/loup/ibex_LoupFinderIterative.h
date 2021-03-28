@@ -39,11 +39,21 @@ public:
 	 * a LoupFinder (e.g. AbsTaylor/XTaylor).
 	 */
 	virtual std::pair<IntervalVector, double> find(const IntervalVector& box, const IntervalVector& loup_point, double loup);
-	const System& sys;
-
+	/**
+	 * \brief To use for checking the progress of the upperbounds
+	 */
 	void set_trace(bool trace){this->trace = trace;}
+	/**
+	 * \brief For printing the ub, in case the trace function is true
+	 */
 	void print_ub(std::pair<IntervalVector,double> p);
-
+	/**
+	 * \brief Changes the size and position of the current search box. Always inside
+	 * the root box.
+	 */
+	void change_box_size(IntervalVector& box_aux, Vector old_exp);
+	/**The system**/
+	const System& sys;
 private:
 
 	/**LoupFinder AbsTaylor (if needed)**/

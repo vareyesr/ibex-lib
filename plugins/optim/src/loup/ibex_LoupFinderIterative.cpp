@@ -1,5 +1,3 @@
-
-
 #include "ibex_LoupFinderIterative.h"
 
 using namespace std;
@@ -12,9 +10,23 @@ LoupFinderIterative::LoupFinderIterative(const System& sys,const IntervalVector&
 	trace = false;
 }
 
-std::pair<IntervalVector, double> LoupFinderIterative::find(const IntervalVector& box, const IntervalVector& old_loup_point, double old_loup) {
 
-	pair<IntervalVector,double> p=make_pair(old_loup_point, old_loup);
+void LoupFinderIterative::change_box_size(IntervalVector& box_aux, Vector old_exp){
+	for (int i = 0 ; i < box_aux.size() ; i++){
+		if ((old_exp[i]-(alpha)*box_aux[i].diam()/2>=initial_box[i].lb()) && (old_exp[i]+(alpha)*box_aux[i].diam()/2<=initial_box[i].ub()))
+			box_aux[i] = Interval(old_exp[i]-(alpha)*box_aux[i].diam()/2,old_exp[i]+(alpha)*box_aux[i].diam()/2);
+		else if ((old_exp[i]-(alpha)*box_aux[i].diam()/2>=initial_box[i].lb()) && (old_exp[i]+(alpha)*box_aux[i].diam()/2>initial_box[i].ub()))
+			box_aux[i] = Interval(old_exp[i]-(alpha)*box_aux[i].diam()/2,initial_box[i].ub());
+		else if ((old_exp[i]-(alpha)*box_aux[i].diam()/2<initial_box[i].lb()) && (old_exp[i]+(alpha)*box_aux[i].diam()/2<=initial_box[i].ub()))
+			box_aux[i] = Interval(initial_box[i].lb(),old_exp[i]+(alpha)*box_aux[i].diam()/2);
+		else if ((old_exp[i]-alpha*box_aux[i].diam()/2<initial_box[i].lb()) && (old_exp[i]+alpha*box_aux[i].diam()/2>initial_box[i].ub()))
+			box_aux[i] = Interval(initial_box[i].lb(),initial_box[i].ub());
+	}
+}
+
+std::pair<IntervalVector, double> LoupFinderIterative::find(const IntervalVector& box, const IntervalVector& exp_point, double old_loup) {
+
+	pair<IntervalVector,double> p=make_pair(exp_point, old_loup);
 
 	bool found=false;
 	pair<IntervalVector,double> new_ub = p;
@@ -25,7 +37,7 @@ std::pair<IntervalVector, double> LoupFinderIterative::find(const IntervalVector
 
 	if ((lfinders == BOTH) || (lfinders == ABST)){
 		try{
-			pair<IntervalVector,double> new_ub=finder_abs_taylor.find(box,box.mid(),p.second);
+			pair<IntervalVector,double> new_ub=finder_abs_taylor.find(box,exp_point,p.second);
 			if(new_ub.second < p.second){
 				found = true;
 				p = new_ub;
@@ -36,7 +48,7 @@ std::pair<IntervalVector, double> LoupFinderIterative::find(const IntervalVector
 	}
 	if ((lfinders == BOTH) || (lfinders == XT)){
 		try{
-			pair<IntervalVector,double> new_ub=finder_x_taylor.find(box,box.mid(),p.second);
+			pair<IntervalVector,double> new_ub=finder_x_taylor.find(box,exp_point,p.second);
 			if(new_ub.second < p.second){
 				found = true;
 				p = new_ub;
@@ -57,17 +69,7 @@ std::pair<IntervalVector, double> LoupFinderIterative::find(const IntervalVector
 		else flag = true;
 
 		Vector old_exp = p.first.mid();
-		for (int i = 0 ; i < box.size() ; i++){
-
-			if ((old_exp[i]-(alpha)*box_aux[i].diam()/2>=initial_box[i].lb()) && (old_exp[i]+(alpha)*box_aux[i].diam()/2<=initial_box[i].ub()))
-				box_aux[i] = Interval(old_exp[i]-(alpha)*box_aux[i].diam()/2,old_exp[i]+(alpha)*box_aux[i].diam()/2);
-			else if ((old_exp[i]-(alpha)*box_aux[i].diam()/2>=initial_box[i].lb()) && (old_exp[i]+(alpha)*box_aux[i].diam()/2>initial_box[i].ub()))
-				box_aux[i] = Interval(old_exp[i]-(alpha)*box_aux[i].diam()/2,initial_box[i].ub());
-			else if ((old_exp[i]-(alpha)*box_aux[i].diam()/2<initial_box[i].lb()) && (old_exp[i]+(alpha)*box_aux[i].diam()/2<=initial_box[i].ub()))
-				box_aux[i] = Interval(initial_box[i].lb(),old_exp[i]+(alpha)*box_aux[i].diam()/2);
-			else if ((old_exp[i]-alpha*box_aux[i].diam()/2<initial_box[i].lb()) && (old_exp[i]+alpha*box_aux[i].diam()/2>initial_box[i].ub()))
-				box_aux[i] = Interval(initial_box[i].lb(),initial_box[i].ub());
-		}
+		change_box_size(box_aux,old_exp);
 		old_ub = p;
 
 		if ((lfinders == BOTH) || (lfinders == ABST)){

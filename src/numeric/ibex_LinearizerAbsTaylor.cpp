@@ -135,7 +135,7 @@ int LinearizerAbsTaylor::linearize_leq_mid(const IntervalVector& box, const Vect
 	// =====================================================
     Vector aa=a;
 	aa.resize(box.size());
-	Interval rhs = -g_mid + aa*point - 1e-9;
+	Interval rhs = -g_mid + aa*point - lp_solver->tolerance();
 
 	double b = rhs.lb() ;
 
