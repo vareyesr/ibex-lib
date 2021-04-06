@@ -567,7 +567,7 @@ const char* white() {
 
 void Optimizer::report() {
 
-	cout << nb_cells << " " << time << endl;
+	cout << nb_cells << " " << time << " "<<loup<<endl;
 //	if (!cov || !buffer.empty()) { // not started
 //		cout << " not started." << endl;
 //		return;

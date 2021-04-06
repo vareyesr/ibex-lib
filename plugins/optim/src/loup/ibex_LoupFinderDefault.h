@@ -48,7 +48,7 @@ public:
 	 *                2/ generates symbolically components of the main function (heavy)
 	 *
 	 */
-	LoupFinderDefault(const System& sys, bool inHC4=true);
+	LoupFinderDefault(const System& sys, bool inHC4=true,int opcion=3);
 
 	/**
 	 * \brief Delete this.
@@ -88,6 +88,8 @@ public:
 	LoupFinderAbsTaylor finder_abs_taylor;
 
 	LoupFinderIterative finder_trust;
+
+	int opcion;
 };
 
 inline std::pair<IntervalVector, double> LoupFinderDefault::find(const IntervalVector& box, const IntervalVector& loup_point, double loup) {

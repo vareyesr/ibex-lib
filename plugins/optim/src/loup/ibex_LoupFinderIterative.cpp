@@ -81,16 +81,16 @@ std::pair<IntervalVector, double> LoupFinderIterative::find(const IntervalVector
 				}
 			} catch(NotFound&) {}
 		}
-		if ((lfinders == BOTH) || (lfinders == XT)){
-			try {
-				new_ub=finder_x_taylor.find(box_aux,p.first.mid(),p.second);
-				if(new_ub.second < p.second){
-					p = new_ub;
-					if (trace) print_ub(p);
-				}
-
-			} catch(NotFound&) {}
-		}
+//		if ((lfinders == BOTH) || (lfinders == XT)){
+//			try {
+//				new_ub=finder_x_taylor.find(box_aux,p.first.mid(),p.second);
+//				if(new_ub.second < p.second){
+//					p = new_ub;
+//					if (trace) print_ub(p);
+//				}
+//
+//			} catch(NotFound&) {}
+//		}
 		nb_iter++;
 		if (nb_iter >= max_iter)
 			break;
