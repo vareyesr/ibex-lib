@@ -13,10 +13,10 @@ namespace ibex {
 /**
  * \ingroup optim
  *
- * \brief Upper-bounding algorithm based on XTaylor restriction.
+ * \brief Upper-bounding algorithm based on XTaylor/AbsTaylor restriction.
  *
  * The algorithm builds an inner (feasible) polytope inside the
- * current box (see #LinearizerXTaylor) and then minimizes a
+ * current box (see #LinearizerXTaylor and #LinearizerAbsTaylor) and then minimizes a
  * linear approximation of the goal function on this polytope via
  * a LP solver. The resulting point is verified a posteriori to
  * be feasible (wrt nonlinear constraint) and a new "loup".

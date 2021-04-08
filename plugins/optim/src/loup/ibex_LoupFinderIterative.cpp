@@ -5,8 +5,8 @@ using namespace std;
 namespace ibex {
 
 
-LoupFinderIterative::LoupFinderIterative(const System& sys,const IntervalVector& initial_box,double alpha,loup_finders lfinders, int max_iter,double prec) :
-	finder_abs_taylor(sys),finder_x_taylor(sys),initial_box(initial_box),alpha(alpha),sys(sys),lfinders(lfinders),max_iter(max_iter),prec(prec) {
+LoupFinderIterative::LoupFinderIterative(const System& sys,const IntervalVector& initial_box,double alpha,int max_iter,double prec) :
+	finder_abs_taylor(sys),finder_x_taylor(sys),initial_box(initial_box),alpha(alpha),sys(sys),max_iter(max_iter),prec(prec) {
 	trace = false;
 }
 
@@ -24,6 +24,13 @@ void LoupFinderIterative::change_box_size(IntervalVector& box_aux, Vector old_ex
 	}
 }
 
+void LoupFinderIterative::print_ub(std::pair<IntervalVector,double> p){
+	cout << "The point :    ";
+	cout << p.first.ub() << endl;
+	cout << "corresponds to an upperbound of the problem with a cost of ";
+	cout << p.second << endl << endl;
+}
+
 std::pair<IntervalVector, double> LoupFinderIterative::find(const IntervalVector& box, const IntervalVector& exp_point, double old_loup) {
 
 	pair<IntervalVector,double> p=make_pair(exp_point, old_loup);
@@ -34,29 +41,26 @@ std::pair<IntervalVector, double> LoupFinderIterative::find(const IntervalVector
  	bool flag = true;
 
 
+	try{
+		pair<IntervalVector,double> new_ub=finder_abs_taylor.find(box,exp_point,p.second);
+		if(new_ub.second < p.second){
+			found = true;
+			p = new_ub;
+			if (trace) print_ub(p);
+		}
+		else throw NotFound();
+	} catch(NotFound&) { }
 
-	if ((lfinders == BOTH) || (lfinders == ABST)){
-		try{
-			pair<IntervalVector,double> new_ub=finder_abs_taylor.find(box,exp_point,p.second);
-			if(new_ub.second < p.second){
-				found = true;
-				p = new_ub;
-				if (trace) print_ub(p);
-			}
-			else throw NotFound();
-		} catch(NotFound&) { }
-	}
-	if ((lfinders == BOTH) || (lfinders == XT)){
-		try{
-			pair<IntervalVector,double> new_ub=finder_x_taylor.find(box,exp_point,p.second);
-			if(new_ub.second < p.second){
-				found = true;
-				p = new_ub;
-				if (trace) print_ub(p);
-			}
-			else throw NotFound();
-		} catch(NotFound&) { }
-	}
+	try{
+		pair<IntervalVector,double> new_ub=finder_x_taylor.find(box,exp_point,p.second);
+		if(new_ub.second < p.second){
+			found = true;
+			p = new_ub;
+			if (trace) print_ub(p);
+		}
+		else throw NotFound();
+	} catch(NotFound&) { }
+
 
 	if (!found){
 		throw NotFound();
@@ -72,25 +76,14 @@ std::pair<IntervalVector, double> LoupFinderIterative::find(const IntervalVector
 		change_box_size(box_aux,old_exp);
 		old_ub = p;
 
-		if ((lfinders == BOTH) || (lfinders == ABST)){
-			try {
-				new_ub=finder_abs_taylor.find(box_aux,p.first.mid(),p.second);
-				if(new_ub.second < p.second){
-					p = new_ub;
-					if (trace) print_ub(p);
-				}
-			} catch(NotFound&) {}
-		}
-//		if ((lfinders == BOTH) || (lfinders == XT)){
-//			try {
-//				new_ub=finder_x_taylor.find(box_aux,p.first.mid(),p.second);
-//				if(new_ub.second < p.second){
-//					p = new_ub;
-//					if (trace) print_ub(p);
-//				}
-//
-//			} catch(NotFound&) {}
-//		}
+		try {
+			new_ub=finder_abs_taylor.find(box_aux,p.first.mid(),p.second);
+			if(new_ub.second < p.second){
+				p = new_ub;
+				if (trace) print_ub(p);
+			}
+		} catch(NotFound&) {}
+
 		nb_iter++;
 		if (nb_iter >= max_iter)
 			break;
@@ -103,12 +96,7 @@ std::pair<IntervalVector, double> LoupFinderIterative::find(const IntervalVector
 		throw NotFound();
 }
 
-void LoupFinderIterative::print_ub(std::pair<IntervalVector,double> p){
-	cout << "The point :    ";
-	cout << p.first.ub() << endl;
-	cout << "corresponds to an upperbound of the problem with a cost of ";
-	cout << p.second << endl << endl;
-}
+
 
 LoupFinderIterative::~LoupFinderIterative() {
 
