@@ -1,9 +1,7 @@
 /* ============================================================================
- * I B E X - X-Taylor linear relaxation/restriction
+ * I B E X - AbsTaylor linearizer
  * ============================================================================
- * Copyright   : IMT Atlantique (FRANCE)
- * License     : This program can be distributed under the terms of the GNU LGPL.
- *               See the file COPYING.LESSER.
+
  *
  * Author(s)   : Ignacio Araya, Victor Reyes
  * Created     : April 23th, 2018
@@ -31,7 +29,7 @@ class Unsatisfiability : public Exception { };
 }
 
 LinearizerAbsTaylor::LinearizerAbsTaylor(const System& _sys):
-			Linearizer(_sys.nb_var), sys(_sys),
+		LinearizerXTaylor(_sys), sys(_sys),
 			m(sys.f_ctrs.image_dim()), goal_ctr(-1 /*tmp*/),
 			lp_solver(NULL), exp_point(0.0) {
 
@@ -116,6 +114,7 @@ int LinearizerAbsTaylor::linear_restrict(const IntervalVector& box) {
 
 }
 
+// todo: revisar el punto de expansion
 int LinearizerAbsTaylor::linearize_leq_mid(const IntervalVector& box, const Vector& point, const IntervalVector& dg_box, const Interval& g_mid) {
 	Vector a(2*n); // vector of coefficients
 
@@ -143,11 +142,30 @@ int LinearizerAbsTaylor::linearize_leq_mid(const IntervalVector& box, const Vect
 	return check_and_add_constraint(box,a,b);
 }
 
+//int LinearizerAbsTaylor::check_and_add_constraint(const IntervalVector& box, const Vector& a, double b) {
+//
+//		lp_solver->add_constraint(a, LEQ, b); // note: may throw LPException
+//		return 1;
+//	//}
+//}
+
 int LinearizerAbsTaylor::check_and_add_constraint(const IntervalVector& box, const Vector& a, double b) {
 
-		lp_solver->add_constraint(a, LEQ, b); // note: may throw LPException
+	Interval ax=a*box; // for fast (in)feasibility check
+
+	// ======= Quick (in)feasibility checks
+	//                 a*[x] <= rhs ?
+	if (ax.lb()>b)
+		// the constraint is not satisfied
+		throw Unsatisfiability();
+	else if (ax.ub()<=b) {
+		// the (linear) constraint is satisfied for any point in the box
+		return 0;
+	} else {
+		//cout << "add constraint " << a << "*x<=" << b << endl;
+		lp_solver->add_constraint(a, LEQ, b);
 		return 1;
-	//}
+	}
 }
 
 } // end namespace

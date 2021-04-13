@@ -27,7 +27,7 @@ class LoupFinderIP : public LoupFinder {
 
 public:
 
-	typedef enum  {XT, ABST} loup_finder;
+	typedef enum  {XT, ABST} loup_finder; //l_type
 	/**
 	 * \brief Create the algorithm for a given system.
 	 *

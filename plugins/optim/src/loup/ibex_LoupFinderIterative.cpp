@@ -6,8 +6,12 @@ namespace ibex {
 
 
 LoupFinderIterative::LoupFinderIterative(const System& sys,const IntervalVector& initial_box,double alpha,int max_iter,double prec) :
-	finder_abs_taylor(sys),finder_x_taylor(sys),initial_box(initial_box),alpha(alpha),sys(sys),max_iter(max_iter),prec(prec) {
+	initial_box(initial_box),alpha(alpha),sys(sys),max_iter(max_iter),prec(prec) {
 	trace = false;
+
+	LoupFinderIP xt(sys,LoupFinderIP::XT);
+	LoupFinderIP abst(sys,LoupFinderIP::ABST);
+	finders.push_back(abst); finders.push_back(xt);
 }
 
 
@@ -40,9 +44,9 @@ std::pair<IntervalVector, double> LoupFinderIterative::find(const IntervalVector
 	pair<IntervalVector,double> old_ub = p;
  	bool flag = true;
 
-
+//while XD
 	try{
-		pair<IntervalVector,double> new_ub=finder_abs_taylor.find(box,exp_point,p.second);
+		pair<IntervalVector,double> new_ub=finders[0].find(box,exp_point,p.second);
 		if(new_ub.second < p.second){
 			found = true;
 			p = new_ub;
@@ -52,7 +56,7 @@ std::pair<IntervalVector, double> LoupFinderIterative::find(const IntervalVector
 	} catch(NotFound&) { }
 
 	try{
-		pair<IntervalVector,double> new_ub=finder_x_taylor.find(box,exp_point,p.second);
+		pair<IntervalVector,double> new_ub=finders[1].find(box,exp_point,p.second);
 		if(new_ub.second < p.second){
 			found = true;
 			p = new_ub;
@@ -77,7 +81,7 @@ std::pair<IntervalVector, double> LoupFinderIterative::find(const IntervalVector
 		old_ub = p;
 
 		try {
-			new_ub=finder_abs_taylor.find(box_aux,p.first.mid(),p.second);
+			new_ub=finders[0].find(box_aux,p.first.mid(),p.second);
 			if(new_ub.second < p.second){
 				p = new_ub;
 				if (trace) print_ub(p);
@@ -87,7 +91,6 @@ std::pair<IntervalVector, double> LoupFinderIterative::find(const IntervalVector
 		nb_iter++;
 		if (nb_iter >= max_iter)
 			break;
-
 	}
 	if (found){
 		return p;
@@ -95,7 +98,6 @@ std::pair<IntervalVector, double> LoupFinderIterative::find(const IntervalVector
 	else
 		throw NotFound();
 }
-
 
 
 LoupFinderIterative::~LoupFinderIterative() {

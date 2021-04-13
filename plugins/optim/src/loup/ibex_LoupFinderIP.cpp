@@ -46,10 +46,10 @@ std::pair<IntervalVector, double> LoupFinderIP::find(const IntervalVector& box, 
 		//initialize auxiliary variables u_i
 		for(int i=0;i<n;i++)
 			box2[n+i]=Interval(-box2[i].mag()-1, box2[i].mag()+1);
-
+//	box2[n+i]=Interval(-box2[i].mag(), box2[i].mag());
 		lp_solver.set_bounds(box2);
 		LinearizerAbsTaylor* lr_abst = dynamic_cast<LinearizerAbsTaylor*>(lr);
-		lr_abst->set_expansion_point(exp_point.mid());
+//		lr_abst->set_expansion_point(exp_point.mid());
 	}
 
 	IntervalVector ig=sys.goal->gradient(box.mid());
@@ -80,7 +80,7 @@ std::pair<IntervalVector, double> LoupFinderIP::find(const IntervalVector& box, 
 		// not outside of the system box.
 		if (!sys.box.contains(loup_point)) throw NotFound();
 
-		/*perhaps only for abst?*/
+		/*probar si es necesario*/
 		for(int i=0;i<box.size();i++){
 			if(box[i].lb() > loup_point[i]) loup_point[i]=box[i].lb();
 			else if(box[i].ub() < loup_point[i]) loup_point[i]=box[i].ub();

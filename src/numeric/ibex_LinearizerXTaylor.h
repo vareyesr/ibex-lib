@@ -98,6 +98,11 @@ public:
 	 */
 	virtual void add_property(const IntervalVector& init_box, BoxProperties& prop);
 
+	/**
+	 * \brief Add the constraint ax<=b in the LP solver.
+	 */
+	virtual int check_and_add_constraint(const IntervalVector& box, const Vector& a, double b);
+
 private:
 
 	/**
@@ -135,10 +140,7 @@ private:
 	 */
 	int linearize_leq_corner(const IntervalVector& box, IntervalVector& corner, const IntervalVector& dg_box, const Interval& g_corner);
 
-	/**
-	 * \brief Add the constraint ax<=b in the LP solver.
-	 */
-	int check_and_add_constraint(const IntervalVector& box, const Vector& a, double b);
+
 
 	/**
 	 * \brief The system

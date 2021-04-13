@@ -3,8 +3,7 @@
 
 #include "ibex_LoupFinder.h"
 #include "ibex_System.h"
-#include "ibex_LoupFinderXTaylor.h"
-#include "ibex_LoupFinderAbsTaylor.h"
+#include "ibex_LoupFinderIP.h"
 #include "ibex_Vector.h"
 
 namespace ibex {
@@ -12,9 +11,6 @@ namespace ibex {
 class LoupFinderIterative : public LoupFinder {
 
 public:
-
-
-	typedef enum  { XT, ABST, BOTH } loup_finders;
 
 	/**
 	 * \ingroup optim
@@ -50,16 +46,15 @@ public:
 	/**
 	 * \brief Changes the size and position of the current search box. Always inside
 	 * the root box.
+	 * reduce and move
 	 */
 	void change_box_size(IntervalVector& box_aux, Vector old_exp);
 	/**The system**/
 	const System& sys;
 private:
 
-	/**LoupFinder AbsTaylor**/
-	LoupFinderAbsTaylor finder_abs_taylor;
-	/**LoupFinder XTaylor**/
-	LoupFinderXTaylor finder_x_taylor;
+	/**LoupFinders**/
+	std::vector<LoupFinderIP> finders;
 	/**The initial box (search space)**/
 	const IntervalVector& initial_box;
 	/**User parameter for convergence purposes**/
