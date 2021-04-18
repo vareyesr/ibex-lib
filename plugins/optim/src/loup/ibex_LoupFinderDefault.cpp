@@ -14,6 +14,9 @@
 #include "ibex_BxpLinearRelaxArgMin.h"
 #include "ibex_LoupFinderProbing.h"
 #include <random>
+#include "ibex_LinearizerAbsTaylor.h"
+#include "ibex_LinearizerXTaylor.h"
+
 
 using namespace std;
 
@@ -21,14 +24,16 @@ namespace ibex {
 
 LoupFinderDefault::LoupFinderDefault(const System& sys, bool inHC4,int opcion) :
 	finder_probing(inHC4? (LoupFinder&) *new LoupFinderInHC4(sys) : (LoupFinder&) *new LoupFinderFwdBwd(sys)),
-	finder_x_taylor(sys),finder_abs_taylor(sys),opcion(opcion),finder_trust(sys,sys.box,0.9,10) {
-
+	opcion(opcion),finder_trust(sys,sys.box,0.9,10) {
+	LinearizerXTaylor* lr = new LinearizerXTaylor(sys,LinearizerXTaylor::RESTRICT,LinearizerXTaylor::RANDOM);
+	LinearizerAbsTaylor* lr2 = new LinearizerAbsTaylor(sys);
+	finder_ip_abst = new LoupFinderIP(sys,lr2);	finder_ip_xt = new LoupFinderIP(sys,lr);
 }
 
 
 void LoupFinderDefault::add_property(const IntervalVector& init_box, BoxProperties& prop) {
 	finder_probing.add_property(init_box,prop);
-	finder_x_taylor.add_property(init_box,prop);
+	finder_ip_xt->add_property(init_box,prop);
 
 	//--------------------------------------------------------------------------
 	/* Using line search from LP relaxation minimizer seems not interesting. */
@@ -54,7 +59,7 @@ std::pair<IntervalVector, double> LoupFinderDefault::find(const IntervalVector& 
 	try {
 			// TODO
 			// in_x_taylor.set_inactive_ctr(entailed->norm_entailed);
-			p=finder_abs_taylor.find(box,box.mid(),p.second);
+			p=finder_ip_abst->find(box,box.mid(),p.second);
 			found=true;
 		} catch(NotFound&) { }
 	}
@@ -70,7 +75,7 @@ std::pair<IntervalVector, double> LoupFinderDefault::find(const IntervalVector& 
 	try {
 		// TODO
 		// in_x_taylor.set_inactive_ctr(entailed->norm_entailed);
-		p=finder_x_taylor.find(box,p.first,p.second,prop);
+		p=finder_ip_xt->find(box,p.first,p.second,prop);
 		found=true;
 	} catch(NotFound&) { }
 	}
@@ -85,7 +90,7 @@ std::pair<IntervalVector, double> LoupFinderDefault::find(const IntervalVector& 
 		if (argmin && argmin->argmin()) {
 			Vector loup_point = p.first.lb();
 			double loup = p.second;
-			LoupFinderProbing(finder_x_taylor.sys).dichotomic_line_search(loup_point, loup, *argmin->argmin(), false);
+			LoupFinderProbing(finder_ip_xt->sys).dichotomic_line_search(loup_point, loup, *argmin->argmin(), false);
 			//cout << "better loup found! " << loup << endl;
 			p=make_pair(loup_point,loup);
 		}
@@ -93,11 +98,6 @@ std::pair<IntervalVector, double> LoupFinderDefault::find(const IntervalVector& 
 	} else
 		throw NotFound();
 
-//	if (found){
-//		return p;
-//	}
-//	else
-//		throw NotFound();
 }
 
 LoupFinderDefault::~LoupFinderDefault() {

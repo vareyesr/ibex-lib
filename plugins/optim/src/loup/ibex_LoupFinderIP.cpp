@@ -11,15 +11,15 @@
 #include <stdio.h>
 #include <string>
 
+
 using namespace std;
 
 namespace ibex {
 
 //TODO: remove this recipe for the argument of the max number of iterations of the LP solver
-LoupFinderIP::LoupFinderIP(const System& sys,loup_finder loup) : sys(sys), lp_solver((loup==XT)? sys.nb_var:(2*sys.nb_var)),loup(loup),exp_point(sys.box.mid()) {
+LoupFinderIP::LoupFinderIP(const System& sys, Linearizer* lr) : sys(sys), lp_solver((dynamic_cast<LinearizerXTaylor*>(lr))? sys.nb_var:(2*sys.nb_var)),lr(lr) {
 	lp_solver.set_max_iter(std::min(sys.nb_var*3, int(LPSolver::default_max_iter)));
-		if (loup == XT) lr = new LinearizerXTaylor(sys,LinearizerXTaylor::RESTRICT,LinearizerXTaylor::RANDOM);
-		else if (loup == ABST) lr = new LinearizerAbsTaylor(sys);
+
 }
 
 void LoupFinderIP::add_property(const IntervalVector& init_box, BoxProperties& prop) {
@@ -35,22 +35,6 @@ std::pair<IntervalVector, double> LoupFinderIP::find(const IntervalVector& box, 
 		throw NotFound();
 
 	lp_solver.clear_constraints();
-
-	if (loup == XT)
-		lp_solver.set_bounds(box);
-	else if (loup == ABST){
-		IntervalVector box2(n*2);
-		for(int i=0;i<n;i++)
-			box2[i]=box[i];
-
-		//initialize auxiliary variables u_i
-		for(int i=0;i<n;i++)
-			box2[n+i]=Interval(-box2[i].mag()-1, box2[i].mag()+1);
-//	box2[n+i]=Interval(-box2[i].mag(), box2[i].mag());
-		lp_solver.set_bounds(box2);
-		LinearizerAbsTaylor* lr_abst = dynamic_cast<LinearizerAbsTaylor*>(lr);
-//		lr_abst->set_expansion_point(exp_point.mid());
-	}
 
 	IntervalVector ig=sys.goal->gradient(box.mid());
 	if (ig.is_empty()) // unfortunately, at the midpoint the function is not differentiable
@@ -81,10 +65,10 @@ std::pair<IntervalVector, double> LoupFinderIP::find(const IntervalVector& box, 
 		if (!sys.box.contains(loup_point)) throw NotFound();
 
 		/*probar si es necesario*/
-		for(int i=0;i<box.size();i++){
-			if(box[i].lb() > loup_point[i]) loup_point[i]=box[i].lb();
-			else if(box[i].ub() < loup_point[i]) loup_point[i]=box[i].ub();
-		}
+//		for(int i=0;i<box.size();i++){
+//			if(box[i].lb() > loup_point[i]) loup_point[i]=box[i].lb();
+//			else if(box[i].ub() < loup_point[i]) loup_point[i]=box[i].ub();
+//		}
 
 		double new_loup=current_loup;
 

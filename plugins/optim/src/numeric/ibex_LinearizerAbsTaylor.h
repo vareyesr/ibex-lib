@@ -10,7 +10,6 @@
 #ifndef __IBEX_LINEARIZER_ABS_TAYLOR__
 #define __IBEX_LINEARIZER_ABS_TAYLOR__
 
-#include "ibex_LinearizerXTaylor.h"
 #include "ibex_Linearizer.h"
 #include "ibex_System.h"
 
@@ -23,7 +22,7 @@ namespace ibex {
  * \brief Abs-Taylor linearization technique.
  *
  */
-class LinearizerAbsTaylor : public LinearizerXTaylor {
+class LinearizerAbsTaylor : public Linearizer {
 
 public:
 

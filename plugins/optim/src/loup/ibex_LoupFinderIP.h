@@ -27,13 +27,12 @@ class LoupFinderIP : public LoupFinder {
 
 public:
 
-	typedef enum  {XT, ABST} loup_finder; //l_type
 	/**
 	 * \brief Create the algorithm for a given system.
 	 *
 	 * \param sys         - The NLP problem.
 	 */
-	LoupFinderIP(const System& sys, loup_finder loup=XT);
+	LoupFinderIP(const System& sys, Linearizer* lr);
 
 	/**
 	 * \brief Find a new loup in a given box.
@@ -54,22 +53,15 @@ public:
 	 */
 	virtual void add_property(const IntervalVector& init_box, BoxProperties& prop);
 	/**
-	 * \brief Sets the expansion point for the AbsTaylor linearization.
-	 */
-	void set_expansion_point(Vector point){ exp_point=point; }
-	/**
 	 * \brief The NLP problem.
 	 */
 	const System& sys;
 private:
-	/*the loupfinder to be used*/
-	loup_finder loup;
-	/*the expansion point for abstaylor, by default the midpoint*/
-	IntervalVector exp_point;
-protected:
 
+protected:
 	/** Linearization technique. */
 	Linearizer* lr;
+
 	/** linear solver */
 	LPSolver lp_solver;
 };

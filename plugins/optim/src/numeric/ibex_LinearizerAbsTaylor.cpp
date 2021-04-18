@@ -5,7 +5,7 @@
  *
  * Author(s)   : Ignacio Araya, Victor Reyes
  * Created     : April 23th, 2018
- * Updated     : April 23th, 2018
+ * Updated     : April 23th, 2021
  * ---------------------------------------------------------------------------- */
 
 #include "ibex_LinearizerAbsTaylor.h"
@@ -29,7 +29,7 @@ class Unsatisfiability : public Exception { };
 }
 
 LinearizerAbsTaylor::LinearizerAbsTaylor(const System& _sys):
-		LinearizerXTaylor(_sys), sys(_sys),
+		Linearizer(_sys.nb_var), sys(_sys),
 			m(sys.f_ctrs.image_dim()), goal_ctr(-1 /*tmp*/),
 			lp_solver(NULL), exp_point(0.0) {
 
@@ -45,7 +45,13 @@ LinearizerAbsTaylor::~LinearizerAbsTaylor() {
 
 int LinearizerAbsTaylor::linearize(const IntervalVector& box, LPSolver& _lp_solver)  {
 	lp_solver = &_lp_solver;
-
+	IntervalVector box2(n*2);
+	for(int i=0;i<n;i++)
+		box2[i]=box[i];
+	//initialize auxiliary variables u_i
+	for(int i=0;i<n;i++)
+		box2[n+i]=Interval(-box2[i].mag(), box2[i].mag());
+	lp_solver->set_bounds(box2);
 	return linear_restrict(box);
 }
 
@@ -63,7 +69,7 @@ int LinearizerAbsTaylor::linear_restrict(const IntervalVector& box) {
 		if (J.is_empty()) return -1; // note: no way to inform that the box is actually infeasible
 
 		// the evaluation of the constraints in the mid of the box
-		Vector point(exp_point);
+		Vector point(box.mid());
 		IntervalVector g_mid(sys.f_ctrs.eval_vector(point,active));
 		if (g_mid.is_empty()) return -1;
 
@@ -114,7 +120,7 @@ int LinearizerAbsTaylor::linear_restrict(const IntervalVector& box) {
 
 }
 
-// todo: revisar el punto de expansion
+
 int LinearizerAbsTaylor::linearize_leq_mid(const IntervalVector& box, const Vector& point, const IntervalVector& dg_box, const Interval& g_mid) {
 	Vector a(2*n); // vector of coefficients
 
@@ -141,13 +147,6 @@ int LinearizerAbsTaylor::linearize_leq_mid(const IntervalVector& box, const Vect
 	// may throw Unsatisfiability and LPException
 	return check_and_add_constraint(box,a,b);
 }
-
-//int LinearizerAbsTaylor::check_and_add_constraint(const IntervalVector& box, const Vector& a, double b) {
-//
-//		lp_solver->add_constraint(a, LEQ, b); // note: may throw LPException
-//		return 1;
-//	//}
-//}
 
 int LinearizerAbsTaylor::check_and_add_constraint(const IntervalVector& box, const Vector& a, double b) {
 

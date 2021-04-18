@@ -15,6 +15,7 @@
 #include "ibex_LoupFinderXTaylor.h"
 #include "ibex_LoupFinderAbsTaylor.h"
 #include "ibex_LoupFinderIterative.h"
+#include "ibex_LoupFinderIP.h"
 
 namespace ibex {
 
@@ -83,11 +84,11 @@ public:
 	/**
 	 * Loup finder using inner polytopes.
 	 */
-	LoupFinderXTaylor finder_x_taylor;
-
-	LoupFinderAbsTaylor finder_abs_taylor;
-
 	LoupFinderIterative finder_trust;
+
+	LoupFinderIP* finder_ip_abst;
+
+	LoupFinderIP* finder_ip_xt;
 
 	int opcion;
 };
