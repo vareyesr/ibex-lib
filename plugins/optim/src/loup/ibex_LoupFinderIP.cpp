@@ -47,7 +47,7 @@ std::pair<IntervalVector, double> LoupFinderIP::find(const IntervalVector& box, 
 	for (int j=0; j<n; j++)
 		lp_solver.set_cost(j,g[j]);
 
-	int count = lr->linearize(box,lp_solver,prop);
+	int count = lr->linearize(box,lp_solver);
 
 	if (count==-1) {
 		lp_solver.clear_constraints();
@@ -62,13 +62,13 @@ std::pair<IntervalVector, double> LoupFinderIP::find(const IntervalVector& box, 
 		loup_point.resize(box.size());
 		// we allow finding a loup outside of the current box, but
 		// not outside of the system box.
-		if (!sys.box.contains(loup_point)) throw NotFound();
+//		if (!sys.box.contains(loup_point)) throw NotFound();
 
 		/*probar si es necesario*/
-//		for(int i=0;i<box.size();i++){
-//			if(box[i].lb() > loup_point[i]) loup_point[i]=box[i].lb();
-//			else if(box[i].ub() < loup_point[i]) loup_point[i]=box[i].ub();
-//		}
+		for(int i=0;i<box.size();i++){
+			if(box[i].lb() > loup_point[i]) loup_point[i]=box[i].lb();
+			else if(box[i].ub() < loup_point[i]) loup_point[i]=box[i].ub();
+		}
 
 		double new_loup=current_loup;
 

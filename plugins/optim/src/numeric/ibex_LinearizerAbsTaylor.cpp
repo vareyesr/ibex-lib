@@ -148,6 +148,12 @@ int LinearizerAbsTaylor::linearize_leq_mid(const IntervalVector& box, const Vect
 	return check_and_add_constraint(box,a,b);
 }
 
+//int LinearizerAbsTaylor::check_and_add_constraint(const IntervalVector& box, const Vector& a, double b) {
+//
+//	lp_solver->add_constraint(a, LEQ, b); // note: may throw LPException
+//	return 1;
+//}
+
 int LinearizerAbsTaylor::check_and_add_constraint(const IntervalVector& box, const Vector& a, double b) {
 
 	Interval ax=a*box; // for fast (in)feasibility check

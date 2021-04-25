@@ -24,7 +24,7 @@ namespace ibex {
 
 LoupFinderDefault::LoupFinderDefault(const System& sys, bool inHC4,int opcion) :
 	finder_probing(inHC4? (LoupFinder&) *new LoupFinderInHC4(sys) : (LoupFinder&) *new LoupFinderFwdBwd(sys)),
-	opcion(opcion),finder_trust(sys,sys.box,0.9,10) {
+	opcion(opcion),finder_trust(sys,sys.box,0.95,20) {
 	LinearizerXTaylor* lr = new LinearizerXTaylor(sys,LinearizerXTaylor::RESTRICT,LinearizerXTaylor::RANDOM);
 	LinearizerAbsTaylor* lr2 = new LinearizerAbsTaylor(sys);
 	finder_ip_abst = new LoupFinderIP(sys,lr2);	finder_ip_xt = new LoupFinderIP(sys,lr);
