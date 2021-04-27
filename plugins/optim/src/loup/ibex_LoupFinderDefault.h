@@ -84,7 +84,7 @@ public:
 	/**
 	 * Loup finder using inner polytopes.
 	 */
-	LoupFinderIterative finder_trust;
+	LoupFinderIterative* finder_trust;
 
 	LoupFinderIP* finder_ip_abst;
 

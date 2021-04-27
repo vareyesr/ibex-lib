@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
 	string loup_finder = argv[2];
 	string exp_point= argv[3];
 	LoupFinderAbsTaylor abst(*sys);
-	LoupFinderIterative trust(*sys,sys->box);
+//	LoupFinderIterative trust(*sys,sys->box);
 
 	IntervalVector point(sys->box.size());
 
@@ -70,8 +70,8 @@ int main(int argc, char** argv) {
 	}
 	else if (loup_finder == "iterative"){
 		try {
-			trust.set_trace(true);
-			trust.find(sys->box,point,POS_INFINITY);
+//			trust.set_trace(true);
+//			trust.find(sys->box,point,POS_INFINITY);
 		} catch(int e) {cout << "Upperbound not found"<<endl; }
 	}
 	else{

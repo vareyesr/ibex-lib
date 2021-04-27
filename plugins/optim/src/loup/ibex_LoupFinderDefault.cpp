@@ -24,10 +24,13 @@ namespace ibex {
 
 LoupFinderDefault::LoupFinderDefault(const System& sys, bool inHC4,int opcion) :
 	finder_probing(inHC4? (LoupFinder&) *new LoupFinderInHC4(sys) : (LoupFinder&) *new LoupFinderFwdBwd(sys)),
-	opcion(opcion),finder_trust(sys,sys.box,0.95,20) {
+	opcion(opcion) {
 	LinearizerXTaylor* lr = new LinearizerXTaylor(sys,LinearizerXTaylor::RESTRICT,LinearizerXTaylor::RANDOM);
 	LinearizerAbsTaylor* lr2 = new LinearizerAbsTaylor(sys);
 	finder_ip_abst = new LoupFinderIP(sys,lr2);	finder_ip_xt = new LoupFinderIP(sys,lr);
+	vector<LoupFinderIP*> finders;
+	finders.push_back(finder_ip_abst); finders.push_back(finder_ip_xt);
+	finder_trust = new LoupFinderIterative(sys,sys.box,finders,0.95,20,1e-3);
 }
 
 
@@ -59,7 +62,7 @@ std::pair<IntervalVector, double> LoupFinderDefault::find(const IntervalVector& 
 	try {
 			// TODO
 			// in_x_taylor.set_inactive_ctr(entailed->norm_entailed);
-			p=finder_ip_abst->find(box,box.mid(),p.second);
+			p=finder_ip_abst->find(box,p.first,p.second,prop);
 			found=true;
 		} catch(NotFound&) { }
 	}
@@ -67,7 +70,7 @@ std::pair<IntervalVector, double> LoupFinderDefault::find(const IntervalVector& 
 	try {
 		// TODO
 		// in_x_taylor.set_inactive_ctr(entailed->norm_entailed);
-		p=finder_trust.find(box,box.mid(),p.second);
+		p=finder_trust->find(box,box.mid(),p.second);
 		found=true;
 	} catch(NotFound&) { }
 	}
