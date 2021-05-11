@@ -8,7 +8,7 @@
 #ifndef __IBEX_CTC_DUAL_P_H__
 #define __IBEX_CTC_DUAL_P_H__
 
-#include "ibex_Linearizer.h"
+#include "ibex_LinearizerXTaylor.h"
 #include "ibex_Ctc.h"
 #include "ibex_LPSolver.h"
 
@@ -16,8 +16,7 @@ namespace ibex {
 class CtcDualP : public Ctc {
 public:
 
-	CtcDualP(Linearizer& lr, int max_iter=LPSolver::default_max_iter,
-			int time_out=LPSolver::default_timeout, double eps=LPSolver::default_tolerance);
+	CtcDualP(LinearizerXTaylor& lr, IntervalVector initial_box);
 
 	/**
 	 * \brief Delete this.
@@ -35,18 +34,19 @@ public:
 	/**
 	 * \brief Add linearizer properties to the map
 	 */
-	virtual void add_property(const IntervalVector& init_box, BoxProperties& map);
+	virtual void add_property(const IntervalVector& init_box, BoxProperties& map){};
 	/*
 	 * \brief update the current preconditioner matrix
 	 */
-	void update_dual_sols();
+	void update_dual_sols(IntervalVector box);
+	void compute_dual(Matrix A, Vector b, IntervalVector box);
 
 protected:
 
 	/**
 	 * \brief The linearization technique
 	 */
-	Linearizer& lr;
+	LinearizerXTaylor& lr;
 	/*
 	 * \brief box used in the last updated
 	 */
@@ -59,7 +59,9 @@ protected:
 	 * The dual solution, which is updated throw the search.
 	 */
 	Matrix dual_sols;
-}
+	Matrix A_input;
+	Vector b_input;
+};
 }
 
 #endif // __IBEX_CTC_DUAL_P_H__

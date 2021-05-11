@@ -38,7 +38,7 @@ LinearizerXTaylor::LinearizerXTaylor(const System& _sys, approx_mode _mode, corn
 			Linearizer(_sys.nb_var), sys(_sys),
 			m(sys.f_ctrs.image_dim()), goal_ctr(-1 /*tmp*/),
 			mode(_mode), slope(_slope),
-			inf(new bool[n]), lp_solver(NULL), cache(NULL) {
+			inf(new bool[n]), lp_solver(NULL), cache(NULL),A_input(0,0),b_input(0){
 
 	if (dynamic_cast<const ExtendedSystem*>(&sys)) {
 		((int&) goal_ctr)=((const ExtendedSystem&) sys).goal_ctr();
@@ -72,11 +72,15 @@ void LinearizerXTaylor::add_property(const IntervalVector& init_box, BoxProperti
 }
 
 int LinearizerXTaylor::linearize(const IntervalVector& box, LPSolver& _lp_solver)  {
+	A_input.resize(0,0);
+	b_input.resize(0);
 	BoxProperties prop(box);
 	return linearize(box, _lp_solver, prop);
 }
 
 int LinearizerXTaylor::linearize(const IntervalVector& box, LPSolver& _lp_solver, BoxProperties& prop) {
+	A_input.resize(0,0);
+	b_input.resize(0);
 	lp_solver = &_lp_solver;
 
 	// ========= get active constraints ===========
@@ -322,6 +326,15 @@ int LinearizerXTaylor::check_and_add_constraint(const IntervalVector& box, const
 	} else {
 		//cout << "add constraint " << a << "*x<=" << b << endl;
 		lp_solver->add_constraint(a, LEQ, b);
+		A_input.resize(A_input.nb_rows()+1,a.size());
+		b_input.resize(b_input.size()+1);
+		for (int i = 0 ; i < a.size() ; i++)
+			A_input[A_input.nb_rows()-1][i] = a[i];
+		b_input[b_input.size()-1] = b;
+
+//		for (int i = 0 ; i < a.size() ; i++)
+//			A_input[A_input.nb_rows()-1,i] = a[i];
+//		cout << A_input << endl;
 		return 1;
 	}
 }

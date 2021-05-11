@@ -13,6 +13,8 @@
 #include "ibex_NoBisectableVariableException.h"
 #include "ibex_LinearException.h"
 #include "ibex_CovSolverData.h"
+#include "ibex_LinearizerXTaylor.h"
+#include "ibex_CtcDualP.h"
 
 #include <cassert>
 
@@ -108,6 +110,7 @@ void Solver::start(const IntervalVector& init_box) {
 }
 
 void Solver::start(const CovSolverData& data) {
+
 	buffer.flush();
 
 	if (manif) delete manif;
@@ -160,6 +163,7 @@ void Solver::start(const CovSolverData& data) {
 }
 
 void Solver::start(const char* input_paving) {
+
 	CovSolverData data(input_paving);
 	start(data);
 }
@@ -185,6 +189,8 @@ bool Solver::next(CovSolverData::BoxStatus& status, const IntervalVector** sol) 
 
 		ContractContext context(c->prop);
 
+
+
 		int v=c->bisected_var; // last bisected var.
 
 		if (v!=-1) { // not the root node :  impact set to the last bisected variable only
@@ -192,8 +198,16 @@ bool Solver::next(CovSolverData::BoxStatus& status, const IntervalVector** sol) 
 		}
 
 		try {
-			ctc.contract(c->box,context);
 
+			ctc.contract(c->box,context);
+			/***TESTING***/
+			LinearizerXTaylor test_taylor(*eqs);
+			CtcDualP test_dual(test_taylor, c->box);
+//			LPSolver mylinearsolver(eqs->nb_var);
+//			test_taylor.linearize(c->box, mylinearsolver);
+//			cout << test_taylor.A_input << endl;
+//			exit(1);
+			/**END**/
 			if (c->box.is_empty()) throw EmptyBoxException();
 
 			// 2nd condition: certification is performed at

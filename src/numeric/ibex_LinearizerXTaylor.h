@@ -97,7 +97,8 @@ public:
 	 * \brief Add BxpActiveCtrs
 	 */
 	virtual void add_property(const IntervalVector& init_box, BoxProperties& prop);
-
+	Matrix A_input;
+	Vector b_input;
 private:
 
 	/**
@@ -187,6 +188,7 @@ private:
 	 * Current system cache (NULL if none)
 	 */
 	BxpSystemCache* cache;
+
 };
 
 } // end namespace ibex
